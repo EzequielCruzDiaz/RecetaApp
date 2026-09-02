@@ -1,159 +1,168 @@
 "use client";
 
 import { useState } from "react";
-import type {
-  BorradorReceta,
-  InventoryIngredient,
-  RecetaIngrediente,
-} from "@/lib/types";
-import IngredientRow, { unidadPorDefecto } from "./IngredientRow";
+import type { InventoryIngredient, Receta, RecetaIngrediente } from "../lib/types";
+import { computeRecipeCost } from "../lib/conversion";
+import { colors, numeric, radius } from "../lib/tokens";
+import { buttonStyle, formatMoney, inputStyle } from "./ui";
+import { IngredientRow } from "./IngredientRow";
 
 interface RecipeFormProps {
   inventario: InventoryIngredient[];
-  onSubmit: (receta: BorradorReceta) => void;
+  recetaInicial?: Receta;
+  onGuardar: (receta: Receta) => void;
 }
 
-function nuevaLinea(inventario: InventoryIngredient[]): RecetaIngrediente {
-  const primero = inventario[0];
-  return {
-    ingredientId: primero?.id ?? "",
-    cantidad: 1,
-    unidad: primero ? unidadPorDefecto(primero) : "unidad",
-    alGusto: false,
-  };
-}
+export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormProps) {
+  const [nombre, setNombre] = useState(recetaInicial?.nombre ?? "");
+  const [categoria, setCategoria] = useState(recetaInicial?.categoria ?? "");
+  const [porciones, setPorciones] = useState(recetaInicial?.porciones ?? 4);
+  const [unidadRendimiento, setUnidadRendimiento] = useState(
+    recetaInicial?.unidadRendimiento ?? "porciones",
+  );
+  const [ingredientes, setIngredientes] = useState<RecetaIngrediente[]>(
+    recetaInicial?.ingredientes ?? [],
+  );
 
-const campo =
-  "rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
+  const inventarioMap = Object.fromEntries(inventario.map((i) => [i.id, i]));
+  const disponibles = inventario.filter(
+    (i) => !ingredientes.some((ri) => ri.ingredientId === i.id),
+  );
 
-export default function RecipeForm({ inventario, onSubmit }: RecipeFormProps) {
-  const [nombre, setNombre] = useState("");
-  const [porciones, setPorciones] = useState(4);
-  const [lineas, setLineas] = useState<RecetaIngrediente[]>(() => [
-    nuevaLinea(inventario),
-  ]);
-  const [error, setError] = useState<string | null>(null);
+  const { costoTotal, costoPorPorcion } = computeRecipeCost(
+    { id: "temp", nombre, porciones, unidadRendimiento, ingredientes },
+    inventarioMap,
+  );
 
-  const inventarioVacio = inventario.length === 0;
-
-  function actualizarLinea(indice: number, cambiada: RecetaIngrediente) {
-    setLineas((prev) => prev.map((l, i) => (i === indice ? cambiada : l)));
+  function agregarIngrediente(ingredientId: string) {
+    const ing = inventarioMap[ingredientId];
+    if (!ing) return;
+    setIngredientes([
+      ...ingredientes,
+      { ingredientId, cantidad: 0, unidad: ing.unidadCompra, alGusto: false },
+    ]);
   }
 
-  function quitarLinea(indice: number) {
-    setLineas((prev) => prev.filter((_, i) => i !== indice));
-  }
-
-  function reiniciar() {
-    setNombre("");
-    setPorciones(4);
-    setLineas([nuevaLinea(inventario)]);
-    setError(null);
-  }
-
-  function manejarSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    const nombreLimpio = nombre.trim();
-    const ingredientes = lineas.filter((l) => l.ingredientId !== "");
-
-    if (nombreLimpio === "") return setError("Ponele un nombre a la receta.");
-    if (porciones <= 0)
-      return setError("Las porciones tienen que ser un número positivo.");
-    if (ingredientes.length === 0)
-      return setError("Agregá al menos un ingrediente del inventario.");
-
-    onSubmit({ nombre: nombreLimpio, porciones, ingredientes });
-    reiniciar();
+  function guardar() {
+    if (nombre.trim() === "" || ingredientes.length === 0) return;
+    onGuardar({
+      id: recetaInicial?.id ?? crypto.randomUUID(),
+      nombre: nombre.trim(),
+      categoria: categoria.trim() || undefined,
+      porciones,
+      unidadRendimiento: unidadRendimiento.trim() || "porciones",
+      ingredientes,
+    });
+    if (!recetaInicial) {
+      setNombre("");
+      setCategoria("");
+      setPorciones(4);
+      setIngredientes([]);
+    }
   }
 
   return (
-    <form
-      onSubmit={manejarSubmit}
-      className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950"
+    <div
+      style={{
+        background: colors.surface,
+        border: `1px solid ${colors.border}`,
+        borderRadius: radius.md,
+        padding: 20,
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+      }}
     >
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-        Nueva receta
-      </h2>
+      <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
+        {recetaInicial ? "Editar receta" : "Nueva receta"}
+      </h3>
 
-      {inventarioVacio && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-          Cargá primero algún ingrediente al inventario.
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-4">
-        <div className="flex flex-1 flex-col gap-1">
-          <label htmlFor="rf-nombre" className="text-sm font-medium">
-            Nombre
-          </label>
+      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 10 }}>
+        <label style={{ fontSize: 12, color: colors.textMuted }}>
+          Nombre
+          <input value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />
+        </label>
+        <label style={{ fontSize: 12, color: colors.textMuted }}>
+          Categoría
           <input
-            id="rf-nombre"
-            type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            className={campo}
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            placeholder="Acompañantes"
+            style={inputStyle}
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="rf-porciones" className="text-sm font-medium">
-            Porciones
-          </label>
+        </label>
+        <label style={{ fontSize: 12, color: colors.textMuted }}>
+          Rendimiento
           <input
-            id="rf-porciones"
             type="number"
             min={1}
             value={porciones}
             onChange={(e) => setPorciones(Number(e.target.value))}
-            className={`${campo} w-24`}
+            style={{ ...inputStyle, ...numeric }}
           />
+        </label>
+        <label style={{ fontSize: 12, color: colors.textMuted }}>
+          Unidad de rendimiento
+          <input
+            value={unidadRendimiento}
+            onChange={(e) => setUnidadRendimiento(e.target.value)}
+            placeholder="porciones / lb / unidades"
+            style={inputStyle}
+          />
+        </label>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ingredientes</span>
+        {ingredientes.map((ri, index) => {
+          const ing = inventarioMap[ri.ingredientId];
+          if (!ing) return null;
+          return (
+            <IngredientRow
+              key={ri.ingredientId}
+              ingrediente={ing}
+              value={ri}
+              onChange={(v) => setIngredientes((prev) => prev.map((x, i) => (i === index ? v : x)))}
+              onRemove={() => setIngredientes((prev) => prev.filter((_, i) => i !== index))}
+            />
+          );
+        })}
+        {disponibles.length > 0 && (
+          <select
+            value=""
+            onChange={(e) => e.target.value && agregarIngrediente(e.target.value)}
+            style={{ ...inputStyle, marginTop: 6 }}
+          >
+            <option value="">+ Agregar ingrediente</option>
+            {disponibles.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.nombre}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderTop: `1px solid ${colors.border}`,
+          paddingTop: 12,
+        }}
+      >
+        <div style={{ fontSize: 13, color: colors.textMuted }}>
+          <span style={numeric}>Total {formatMoney(costoTotal)}</span>
+          {"  ·  "}
+          <span style={{ ...numeric, color: colors.accent, fontWeight: 700 }}>
+            {formatMoney(costoPorPorcion)} / {unidadRendimiento.replace(/s$/, "") || "porción"}
+          </span>
         </div>
-      </div>
-
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium">Ingredientes</legend>
-        {lineas.map((linea, i) => (
-          <IngredientRow
-            key={i}
-            linea={linea}
-            inventario={inventario}
-            puedeQuitar={lineas.length > 1}
-            onChange={(cambiada) => actualizarLinea(i, cambiada)}
-            onRemove={() => quitarLinea(i)}
-          />
-        ))}
-        <button
-          type="button"
-          disabled={inventarioVacio}
-          onClick={() => setLineas((prev) => [...prev, nuevaLinea(inventario)])}
-          className="self-start rounded-md border border-dashed border-zinc-400 px-3 py-1.5 text-sm text-zinc-600 hover:bg-white disabled:cursor-not-allowed disabled:opacity-40 dark:text-zinc-300 dark:hover:bg-zinc-900"
-        >
-          + Agregar ingrediente
-        </button>
-      </fieldset>
-
-      {error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
-          {error}
-        </p>
-      )}
-
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={inventarioVacio}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-        >
-          Guardar receta
-        </button>
-        <button
-          type="button"
-          onClick={reiniciar}
-          className="rounded-md px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        >
-          Limpiar
+        <button type="button" onClick={guardar} style={buttonStyle}>
+          {recetaInicial ? "Guardar cambios" : "Guardar receta"}
         </button>
       </div>
-    </form>
+    </div>
   );
 }

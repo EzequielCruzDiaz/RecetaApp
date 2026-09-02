@@ -20,6 +20,8 @@ export interface InventoryIngredient {
   categoria: UnitCategory;
   unidadCompra: Unit;
   precioCompra: number;
+  stock: number;
+  stockMinimo: number;
   equivalencia?: {
     unidadPieza: PieceUnit;
     cantidad: number;
@@ -37,9 +39,32 @@ export interface RecetaIngrediente {
 export interface Receta {
   id: string;
   nombre: string;
+  categoria?: string;
   porciones: number;
+  unidadRendimiento?: string;
   ingredientes: RecetaIngrediente[];
+}
+
+export interface FacturaItem {
+  nombre: string;
+  cantidad: number;
+  unidad: Unit | null;
+  precioUnitario: number;
+  ingredientId?: string;
+}
+
+export interface Factura {
+  id: string;
+  proveedor: string;
+  fecha: string;
+  rnc?: string;
+  ncf?: string;
+  items: FacturaItem[];
+  itbis: number;
+  total: number;
+  aplicadaAlInventario: boolean;
 }
 
 export type BorradorInventoryIngredient = Omit<InventoryIngredient, "id">;
 export type BorradorReceta = Omit<Receta, "id">;
+export type BorradorFactura = Omit<Factura, "id" | "aplicadaAlInventario">;

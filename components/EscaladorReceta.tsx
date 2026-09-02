@@ -1,173 +1,117 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { costoReceta, escalarReceta, mejorUnidad } from "@/lib/conversion";
-import { formatCantidadUnidad, formatMoneda } from "@/lib/tokens";
-import type { InventoryIngredient, Receta } from "@/lib/types";
+import type { InventoryIngredient, Receta } from "../lib/types";
+import { computeIngredientCost } from "../lib/conversion";
+import { colors, numeric } from "../lib/tokens";
+import { Card, Money, formatMoney, inputStyle } from "./ui";
 
 interface EscaladorRecetaProps {
   receta: Receta;
   inventario: InventoryIngredient[];
 }
 
-const MULTIPLICADORES = [0.5, 2, 3];
+export function EscaladorReceta({ receta, inventario }: EscaladorRecetaProps) {
+  const rinde = receta.unidadRendimiento ?? "porciones";
+  const [deseada, setDeseada] = useState(receta.porciones);
 
-export default function EscaladorReceta({
-  receta,
-  inventario,
-}: EscaladorRecetaProps) {
-  const [porciones, setPorciones] = useState(receta.porciones);
-  const [normalizar, setNormalizar] = useState(false);
-
-  const porcionesValidas = Number.isFinite(porciones) && porciones > 0;
-  const objetivo = porcionesValidas ? porciones : receta.porciones;
-
-  const escalada = useMemo(
-    () => escalarReceta(receta, objetivo),
-    [receta, objetivo],
-  );
-  const costo = useMemo(
-    () => costoReceta(escalada, inventario),
-    [escalada, inventario],
+  const inventarioMap = useMemo(
+    () => Object.fromEntries(inventario.map((i) => [i.id, i])),
+    [inventario],
   );
 
-  const porId = new Map(inventario.map((i) => [i.id, i]));
-  const factor = objetivo / receta.porciones;
+  const ratio = receta.porciones > 0 && deseada > 0 ? deseada / receta.porciones : 1;
+
+  const filas = receta.ingredientes.map((ri) => {
+    const ing = inventarioMap[ri.ingredientId];
+    const nombre = ing?.nombre ?? ri.ingredientId;
+    const alGusto = ri.alGusto || ri.cantidad === null || ri.unidad === null;
+    const cantidad = alGusto ? null : (ri.cantidad as number) * ratio;
+
+    let costo: number | null = null;
+    if (!alGusto && ing && cantidad !== null && ri.unidad) {
+      try {
+        costo = computeIngredientCost(ing, cantidad, ri.unidad);
+      } catch {
+        costo = null;
+      }
+    }
+    return { nombre, unidad: ri.unidad, cantidad, alGusto, costo };
+  });
+
+  const total = filas.reduce((acc, f) => acc + (f.costo ?? 0), 0);
+  const porUnidad = deseada > 0 ? total / deseada : 0;
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <header className="flex flex-col gap-1">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-          Escalar: {receta.nombre}
+    <Card style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div>
+        <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
+          Escalar producción — {receta.nombre}
         </h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Receta original para {receta.porciones}{" "}
-          {receta.porciones === 1 ? "porción" : "porciones"}.
+        <p style={{ fontSize: 13, color: colors.textMuted, margin: "4px 0 0" }}>
+          Receta base rinde <span style={numeric}>{receta.porciones}</span> {rinde}.
         </p>
-      </header>
-
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="esc-porciones" className="text-sm font-medium">
-            Porciones
-          </label>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              aria-label="Menos una porción"
-              onClick={() => setPorciones((p) => Math.max(1, p - 1))}
-              className="h-9 w-9 rounded-md border border-zinc-300 text-lg leading-none hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            >
-              −
-            </button>
-            <input
-              id="esc-porciones"
-              type="number"
-              min={1}
-              value={porciones}
-              onChange={(e) => setPorciones(Number(e.target.value))}
-              className="w-20 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-center text-sm text-zinc-900 shadow-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-            />
-            <button
-              type="button"
-              aria-label="Más una porción"
-              onClick={() => setPorciones((p) => p + 1)}
-              className="h-9 w-9 rounded-md border border-zinc-300 text-lg leading-none hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {MULTIPLICADORES.map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() =>
-                setPorciones(Math.max(1, Math.round(receta.porciones * m)))
-              }
-              className="rounded-md border border-zinc-300 px-2.5 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            >
-              {m === 0.5 ? "½×" : `${m}×`}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setPorciones(receta.porciones)}
-            className="rounded-md border border-zinc-300 px-2.5 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-          >
-            Original
-          </button>
-        </div>
-
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={normalizar}
-            onChange={(e) => setNormalizar(e.target.checked)}
-          />
-          Ajustar unidades
-        </label>
       </div>
 
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-        Factor ×{factor.toLocaleString("es-AR", { maximumFractionDigits: 2 })}
-      </p>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: colors.textMuted }}>
+        Quiero producir
+        <input
+          type="number"
+          min={0}
+          value={deseada}
+          onChange={(e) => setDeseada(Number(e.target.value))}
+          style={{ ...inputStyle, width: 90 }}
+        />
+        {rinde}
+        <span style={{ color: colors.textFaint }}>· ratio ×{Number(ratio.toFixed(2))}</span>
+      </label>
 
-      <ul className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
-        {escalada.ingredientes.map((linea, i) => {
-          const ing = porId.get(linea.ingredientId);
-          const resultado = costo.lineas[i];
-
-          let texto: string;
-          if (linea.alGusto || linea.cantidad == null || linea.unidad == null) {
-            texto = `${ing?.nombre ?? linea.ingredientId} — a gusto`;
-          } else {
-            const vista = normalizar
-              ? mejorUnidad(linea.cantidad, linea.unidad)
-              : { cantidad: linea.cantidad, unidad: linea.unidad };
-            texto = `${formatCantidadUnidad(vista.cantidad, vista.unidad)} de ${
-              ing?.nombre ?? linea.ingredientId
-            }`;
-          }
-
-          return (
-            <li
-              key={i}
-              className="flex items-baseline justify-between gap-3 border-b border-zinc-100 pb-1 last:border-0 dark:border-zinc-800"
-            >
-              <span>{texto}</span>
-              <span className="shrink-0 tabular-nums text-zinc-500">
-                {resultado.costo != null
-                  ? formatMoneda(resultado.costo)
-                  : resultado.alGusto
-                    ? "a gusto"
-                    : "—"}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {filas.map((f, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
+              border: `1px solid ${colors.border}`,
+              borderRadius: 8,
+              padding: "8px 12px",
+              fontSize: 13,
+            }}
+          >
+            <span style={{ color: colors.text }}>{f.nombre}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <span style={{ ...numeric, color: colors.textMuted }}>
+                {f.alGusto || f.cantidad === null
+                  ? "a gusto"
+                  : `${Number(f.cantidad.toFixed(2))} ${f.unidad}`}
               </span>
-            </li>
-          );
-        })}
-      </ul>
+              <span style={{ ...numeric, color: colors.textMuted, minWidth: 90, textAlign: "right" }}>
+                {f.costo === null ? "—" : formatMoney(f.costo)}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
 
-      <footer className="flex flex-col gap-1 border-t border-zinc-200 pt-2 text-sm dark:border-zinc-700">
-        <div className="flex items-baseline justify-between">
-          <span className="font-medium">Total</span>
-          <span className="font-semibold tabular-nums">
-            {formatMoneda(costo.total)}
-          </span>
-        </div>
-        <div className="flex items-baseline justify-between text-zinc-600 dark:text-zinc-400">
-          <span>Por porción ({objetivo})</span>
-          <span className="tabular-nums">{formatMoneda(costo.porPorcion)}</span>
-        </div>
-      </footer>
-
-      {!porcionesValidas && (
-        <p className="text-sm text-red-500">
-          Elegí un número de porciones mayor que cero.
-        </p>
-      )}
-    </section>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          borderTop: `1px solid ${colors.border}`,
+          paddingTop: 10,
+        }}
+      >
+        <span style={{ fontSize: 13, color: colors.textMuted }}>
+          Costo total <Money value={total} />
+        </span>
+        <span style={{ fontSize: 14, color: colors.textMuted }}>
+          Por {rinde.replace(/s$/, "")} <Money value={porUnidad} alert />
+        </span>
+      </div>
+    </Card>
   );
 }

@@ -1,122 +1,54 @@
+// SOLO desarrollo local. La app se entrega VACÍA a cada cliente: sin recetas
+// ni ingredientes precargados. La carga inicial de datos de un cliente nuevo
+// es un paso operativo manual al momento de la venta, no una feature.
+//
+// StoreProvider usa estos datos únicamente cuando NODE_ENV === "development".
+
 import type { InventoryIngredient, Receta } from "./types";
 
-export const INVENTARIO_INICIAL: InventoryIngredient[] = [
-  { id: "harina", nombre: "Harina 0000", categoria: "peso", unidadCompra: "kg", precioCompra: 1200 },
-  { id: "azucar", nombre: "Azúcar", categoria: "peso", unidadCompra: "kg", precioCompra: 1000 },
-  { id: "sal", nombre: "Sal fina", categoria: "peso", unidadCompra: "kg", precioCompra: 500 },
-  { id: "arroz", nombre: "Arroz largo fino", categoria: "peso", unidadCompra: "kg", precioCompra: 1500 },
+export const INVENTARIO_DEMO: InventoryIngredient[] = [
   {
-    id: "polvo-hornear",
-    nombre: "Polvo de hornear",
+    id: "pollo",
+    nombre: "Pollo",
     categoria: "peso",
-    unidadCompra: "paquete",
-    precioCompra: 900,
-    equivalencia: { unidadPieza: "paquete", cantidad: 100, unidadBase: "g" },
-  },
-  {
-    id: "manteca",
-    nombre: "Manteca",
-    categoria: "peso",
-    unidadCompra: "paquete",
-    precioCompra: 1600,
-    equivalencia: { unidadPieza: "paquete", cantidad: 200, unidadBase: "g" },
-  },
-  { id: "leche", nombre: "Leche entera", categoria: "volumen", unidadCompra: "L", precioCompra: 950 },
-  { id: "aceite", nombre: "Aceite de girasol", categoria: "volumen", unidadCompra: "L", precioCompra: 2500 },
-  { id: "agua", nombre: "Agua", categoria: "volumen", unidadCompra: "L", precioCompra: 40 },
-  { id: "huevo", nombre: "Huevos", categoria: "pieza", unidadCompra: "docena", precioCompra: 2400 },
-  { id: "palta", nombre: "Palta", categoria: "pieza", unidadCompra: "unidad", precioCompra: 800 },
-  {
-    id: "ajo",
-    nombre: "Ajo",
-    categoria: "pieza",
-    unidadCompra: "kg",
-    precioCompra: 4000,
-    equivalencia: { unidadPieza: "diente", cantidad: 5, unidadBase: "g" },
+    unidadCompra: "lb",
+    precioCompra: 85,
+    stock: 40,
+    stockMinimo: 15,
   },
   {
     id: "cebolla",
     nombre: "Cebolla",
     categoria: "pieza",
-    unidadCompra: "kg",
-    precioCompra: 900,
+    unidadCompra: "lb",
+    precioCompra: 35,
+    stock: 8,
+    stockMinimo: 5,
     equivalencia: { unidadPieza: "unidad", cantidad: 150, unidadBase: "g" },
   },
   {
-    id: "tomate-lata",
-    nombre: "Tomate triturado",
+    id: "ajo",
+    nombre: "Ajo",
     categoria: "pieza",
-    unidadCompra: "lata",
-    precioCompra: 1100,
-    equivalencia: { unidadPieza: "lata", cantidad: 400, unidadBase: "g" },
-  },
-  {
-    id: "cilantro",
-    nombre: "Cilantro",
-    categoria: "pieza",
-    unidadCompra: "atado",
-    precioCompra: 500,
-    equivalencia: { unidadPieza: "atado", cantidad: 30, unidadBase: "g" },
-  },
-  {
-    id: "limon",
-    nombre: "Limón",
-    categoria: "pieza",
-    unidadCompra: "kg",
-    precioCompra: 1200,
-    equivalencia: { unidadPieza: "unidad", cantidad: 100, unidadBase: "g" },
+    unidadCompra: "lb",
+    precioCompra: 150,
+    stock: 2,
+    stockMinimo: 3,
+    equivalencia: { unidadPieza: "diente", cantidad: 5, unidadBase: "g" },
   },
 ];
 
-export const RECETAS_INICIALES: Receta[] = [
+export const RECETAS_DEMO: Receta[] = [
   {
-    id: "panqueques",
-    nombre: "Panqueques básicos",
-    porciones: 4,
-    ingredientes: [
-      { ingredientId: "harina", cantidad: 300, unidad: "g", alGusto: false },
-      { ingredientId: "leche", cantidad: 300, unidad: "ml", alGusto: false },
-      { ingredientId: "huevo", cantidad: 2, unidad: "unidad", alGusto: false },
-      { ingredientId: "azucar", cantidad: 25, unidad: "g", alGusto: false },
-      { ingredientId: "polvo-hornear", cantidad: 10, unidad: "g", alGusto: false },
-      { ingredientId: "manteca", cantidad: 30, unidad: "g", alGusto: false },
-      { ingredientId: "sal", cantidad: null, unidad: null, alGusto: true },
-    ],
-  },
-  {
-    id: "guacamole",
-    nombre: "Guacamole",
+    id: "pollo-guisado",
+    nombre: "Pollo guisado",
+    categoria: "Carnes",
     porciones: 6,
+    unidadRendimiento: "porciones",
     ingredientes: [
-      { ingredientId: "palta", cantidad: 3, unidad: "unidad", alGusto: false },
-      { ingredientId: "cebolla", cantidad: 0.5, unidad: "unidad", alGusto: false },
-      { ingredientId: "tomate-lata", cantidad: 200, unidad: "g", alGusto: false },
-      { ingredientId: "limon", cantidad: 1, unidad: "unidad", alGusto: false },
-      { ingredientId: "cilantro", cantidad: 15, unidad: "g", alGusto: false },
-      { ingredientId: "sal", cantidad: null, unidad: null, alGusto: true },
-    ],
-  },
-  {
-    id: "arroz-blanco",
-    nombre: "Arroz blanco",
-    porciones: 4,
-    ingredientes: [
-      { ingredientId: "arroz", cantidad: 200, unidad: "g", alGusto: false },
-      { ingredientId: "agua", cantidad: 400, unidad: "ml", alGusto: false },
-      { ingredientId: "aceite", cantidad: 15, unidad: "ml", alGusto: false },
-      { ingredientId: "sal", cantidad: null, unidad: null, alGusto: true },
-    ],
-  },
-  {
-    id: "salsa-tomate",
-    nombre: "Salsa de tomate",
-    porciones: 4,
-    ingredientes: [
-      { ingredientId: "tomate-lata", cantidad: 800, unidad: "g", alGusto: false },
-      { ingredientId: "ajo", cantidad: 3, unidad: "diente", alGusto: false },
+      { ingredientId: "pollo", cantidad: 1000, unidad: "g", alGusto: false },
       { ingredientId: "cebolla", cantidad: 1, unidad: "unidad", alGusto: false },
-      { ingredientId: "aceite", cantidad: 30, unidad: "ml", alGusto: false },
-      { ingredientId: "sal", cantidad: null, unidad: null, alGusto: true },
+      { ingredientId: "ajo", cantidad: 3, unidad: "diente", alGusto: false },
     ],
   },
 ];
