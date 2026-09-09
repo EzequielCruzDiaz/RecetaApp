@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { colors, font, radius } from "../lib/tokens";
+import { InstallButton } from "./InstallButton";
+import { SignOutButton } from "./SignOutButton";
+import { StoreStatus } from "./StoreStatus";
 
 const NAV = [
   { href: "/", label: "Resumen" },
@@ -60,10 +63,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
+        <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+          <InstallButton />
+          <SignOutButton />
+        </div>
       </aside>
 
       <main style={{ flex: 1, minWidth: 0, padding: "32px 40px" }}>
-        <div style={{ maxWidth: 1040, margin: "0 auto" }}>{children}</div>
+        <div style={{ maxWidth: 1040, margin: "0 auto" }}>
+          <StoreStatus />
+          {children}
+        </div>
       </main>
     </div>
   );

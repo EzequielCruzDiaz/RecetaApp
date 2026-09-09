@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { parseFacturaTexto, type CamposFacturaOCR } from "../lib/factura-ocr";
+import { TESSERACT_LANG, TESSERACT_OPTIONS } from "../lib/ocr-config";
 import { colors, radius } from "../lib/tokens";
 import { buttonStyle } from "./ui";
 
@@ -29,7 +30,8 @@ export function EscanearFactura({ onDetectado }: EscanearFacturaProps) {
 
     try {
       const { default: Tesseract } = await import("tesseract.js");
-      const { data } = await Tesseract.recognize(file, "spa", {
+      const { data } = await Tesseract.recognize(file, TESSERACT_LANG, {
+        ...TESSERACT_OPTIONS,
         logger: (m: { status: string; progress: number }) => {
           if (m.status === "recognizing text") setProgreso(Math.round(m.progress * 100));
         },
