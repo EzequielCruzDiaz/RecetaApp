@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Assets de terceros self-hosteados (Tesseract): no son código nuestro.
+    "public/**",
   ]),
 ]);
 

@@ -1,4 +1,4 @@
-import { colors, numeric, radius } from "../lib/tokens";
+import { colors, numeric, radius } from "@/lib/tokens";
 
 export function formatMoney(n: number): string {
   return `RD$${n.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

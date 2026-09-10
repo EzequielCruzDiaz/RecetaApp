@@ -9,16 +9,16 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { INVENTARIO_DEMO, RECETAS_DEMO } from "../lib/recetas-iniciales";
-import { supabaseConfigurado } from "../lib/supabase/config";
-import * as repo from "../lib/supabase/repo";
+import { INVENTARIO_DEMO, RECETAS_DEMO } from "@/lib/recetas-iniciales";
+import { supabaseConfigurado } from "@/lib/supabase/config";
+import * as repo from "@/lib/supabase/repo";
 import type {
   BorradorFactura,
   BorradorInventoryIngredient,
   Factura,
   InventoryIngredient,
   Receta,
-} from "../lib/types";
+} from "@/lib/types";
 
 interface StoreShape {
   inventario: InventoryIngredient[];

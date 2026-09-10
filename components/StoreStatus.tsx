@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "./StoreProvider";
-import { colors, radius } from "../lib/tokens";
+import { colors, radius } from "@/lib/tokens";
 
 export function StoreStatus() {
   const { origen, cargando, error } = useStore();

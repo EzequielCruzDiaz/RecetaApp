@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { BorradorFactura, FacturaItem, InventoryIngredient, Unit } from "../lib/types";
-import type { CamposFacturaOCR } from "../lib/factura-ocr";
-import { colors, numeric, radius } from "../lib/tokens";
+import type { BorradorFactura, FacturaItem, InventoryIngredient, Unit } from "@/lib/types";
+import type { CamposFacturaOCR } from "@/lib/factura-ocr";
+import { colors, numeric, radius } from "@/lib/tokens";
 import { buttonStyle, formatMoney, inputStyle } from "./ui";
 
 interface ConfirmarFacturaProps {

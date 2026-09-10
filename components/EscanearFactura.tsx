@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { parseFacturaTexto, type CamposFacturaOCR } from "../lib/factura-ocr";
-import { TESSERACT_LANG, TESSERACT_OPTIONS } from "../lib/ocr-config";
-import { colors, radius } from "../lib/tokens";
+import { parseFacturaTexto, type CamposFacturaOCR } from "@/lib/factura-ocr";
+import { TESSERACT_LANG, TESSERACT_OPTIONS } from "@/lib/ocr-config";
+import { colors, radius } from "@/lib/tokens";
 import { buttonStyle } from "./ui";
 
 interface EscanearFacturaProps {

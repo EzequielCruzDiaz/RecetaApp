@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabaseConfigurado } from "../lib/supabase/config";
-import { getSupabase } from "../lib/supabase/client";
-import { colors, font, radius } from "../lib/tokens";
+import { supabaseConfigurado } from "@/lib/supabase/config";
+import { getSupabase } from "@/lib/supabase/client";
+import { colors, font, radius } from "@/lib/tokens";
 import { buttonStyle, inputStyle } from "./ui";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {

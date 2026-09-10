@@ -1,7 +1,7 @@
 "use client";
 
-import { supabaseConfigurado } from "../lib/supabase/config";
-import { getSupabase } from "../lib/supabase/client";
+import { supabaseConfigurado } from "@/lib/supabase/config";
+import { getSupabase } from "@/lib/supabase/client";
 import { ghostButtonStyle } from "./ui";
 
 export function SignOutButton() {

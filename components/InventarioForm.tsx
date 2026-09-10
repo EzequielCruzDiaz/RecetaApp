@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { BorradorInventoryIngredient, PieceUnit, Unit, UnitCategory } from "../lib/types";
-import { colors, numeric, radius } from "../lib/tokens";
+import type { BorradorInventoryIngredient, PieceUnit, Unit, UnitCategory } from "@/lib/types";
+import { colors, numeric, radius } from "@/lib/tokens";
 import { buttonStyle, inputStyle } from "./ui";
 
 const PIEZAS: PieceUnit[] = ["unidad", "docena", "diente", "atado", "lata", "paquete", "saco", "caja"];

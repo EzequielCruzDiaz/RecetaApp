@@ -1,7 +1,7 @@
 "use client";
 
-import type { InventoryIngredient } from "../lib/types";
-import { colors, numeric, radius } from "../lib/tokens";
+import type { InventoryIngredient } from "@/lib/types";
+import { colors, numeric, radius } from "@/lib/tokens";
 import { Money, formatMoney } from "./ui";
 
 interface InventarioListProps {

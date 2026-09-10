@@ -1,6 +1,6 @@
-import type { InventoryIngredient, Receta } from "../lib/types";
-import { computeRecipeCost } from "../lib/conversion";
-import { colors, numeric } from "../lib/tokens";
+import type { InventoryIngredient, Receta } from "@/lib/types";
+import { computeRecipeCost } from "@/lib/conversion";
+import { colors, numeric } from "@/lib/tokens";
 import { Badge, Card, Money, categoriaColor } from "./ui";
 
 interface RecetaCardProps {

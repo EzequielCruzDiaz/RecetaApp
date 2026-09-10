@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { InventoryIngredient, Receta, RecetaIngrediente } from "../lib/types";
-import { computeRecipeCost } from "../lib/conversion";
-import { colors, numeric, radius } from "../lib/tokens";
+import type { InventoryIngredient, Receta, RecetaIngrediente } from "@/lib/types";
+import { computeRecipeCost } from "@/lib/conversion";
+import { colors, numeric, radius } from "@/lib/tokens";
 import { buttonStyle, formatMoney, inputStyle } from "./ui";
 import { IngredientRow } from "./IngredientRow";
 

@@ -8,7 +8,7 @@ import type {
   RecetaIngrediente,
   Unit,
   UnitCategory,
-} from "../types";
+} from "@/lib/types";
 import type { Database, Json } from "./database.types";
 import { getSupabase } from "./client";
 

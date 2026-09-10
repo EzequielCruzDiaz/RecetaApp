@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { colors, font, radius } from "../lib/tokens";
+import { colors, font, radius } from "@/lib/tokens";
 import { InstallButton } from "./InstallButton";
 import { SignOutButton } from "./SignOutButton";
 import { StoreStatus } from "./StoreStatus";

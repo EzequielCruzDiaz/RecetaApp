@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import type { InventoryIngredient, Receta } from "../lib/types";
-import { computeRecipeCost } from "../lib/conversion";
-import { colors, numeric } from "../lib/tokens";
+import type { InventoryIngredient, Receta } from "@/lib/types";
+import { computeRecipeCost } from "@/lib/conversion";
+import { colors, numeric } from "@/lib/tokens";
 import { Card, Money } from "./ui";
 
 interface DashboardProps {

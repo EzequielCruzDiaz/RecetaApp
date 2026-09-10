@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { StoreProvider } from "../components/StoreProvider";
-import { AppShell } from "../components/AppShell";
-import { AuthGate } from "../components/AuthGate";
-import { ServiceWorkerRegister } from "../components/ServiceWorkerRegister";
+import { StoreProvider } from "@/components/StoreProvider";
+import { AppShell } from "@/components/AppShell";
+import { AuthGate } from "@/components/AuthGate";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 

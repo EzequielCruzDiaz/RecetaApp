@@ -1,6 +1,6 @@
-import type { InventoryIngredient, RecetaIngrediente } from "../lib/types";
-import { computeIngredientCost } from "../lib/conversion";
-import { colors, font } from "../lib/tokens";
+import type { InventoryIngredient, RecetaIngrediente } from "@/lib/types";
+import { computeIngredientCost } from "@/lib/conversion";
+import { colors, font } from "@/lib/tokens";
 import { UnitSelector, type UnitSelectorValue } from "./UnitSelector";
 
 interface IngredientRowProps {

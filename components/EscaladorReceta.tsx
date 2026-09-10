@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { InventoryIngredient, Receta } from "../lib/types";
-import { computeIngredientCost } from "../lib/conversion";
-import { colors, numeric } from "../lib/tokens";
+import type { InventoryIngredient, Receta } from "@/lib/types";
+import { computeIngredientCost } from "@/lib/conversion";
+import { colors, numeric } from "@/lib/tokens";
 import { Card, Money, formatMoney, inputStyle } from "./ui";
 
 interface EscaladorRecetaProps {

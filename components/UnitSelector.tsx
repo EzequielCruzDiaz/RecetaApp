@@ -1,5 +1,5 @@
-import type { Unit } from "../lib/types";
-import { colors, font } from "../lib/tokens";
+import type { Unit } from "@/lib/types";
+import { colors, font } from "@/lib/tokens";
 
 export interface UnitSelectorValue {
   cantidad: number | null;
