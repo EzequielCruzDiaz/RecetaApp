@@ -6,6 +6,8 @@
 
 import type { InventoryIngredient, Receta } from "./types";
 
+export const NOMBRE_NEGOCIO_DEMO = "Cocina Doña Ana";
+
 export const INVENTARIO_DEMO: InventoryIngredient[] = [
   {
     id: "pollo",

@@ -1,7 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ghostButtonStyle } from "./ui";
+import { colors } from "@/lib/tokens";
+
+const sidebarButtonStyle: React.CSSProperties = {
+  fontSize: 13,
+  fontWeight: 600,
+  padding: "9px 12px",
+  borderRadius: 9,
+  border: `1.5px solid ${colors.secondary}`,
+  color: colors.secondary,
+  background: "transparent",
+  cursor: "pointer",
+  fontFamily: "inherit",
+};
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -31,7 +43,7 @@ export function InstallButton() {
   return (
     <button
       type="button"
-      style={{ ...ghostButtonStyle, width: "100%" }}
+      style={{ ...sidebarButtonStyle, width: "100%" }}
       onClick={async () => {
         await deferred.prompt();
         await deferred.userChoice;

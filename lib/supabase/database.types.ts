@@ -161,6 +161,20 @@ export interface Database {
         };
         Relationships: [];
       };
+      app_settings: {
+        Row: {
+          id: number;
+          nombre_negocio: string;
+        };
+        Insert: {
+          id?: number;
+          nombre_negocio?: string;
+        };
+        Update: {
+          nombre_negocio?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

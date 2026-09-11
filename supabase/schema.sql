@@ -65,6 +65,14 @@ create table if not exists public.invoice_items (
 create index if not exists invoice_items_invoice_id_idx
   on public.invoice_items(invoice_id);
 
+-- Fila única de configuración del negocio (un solo inquilino por proyecto).
+create table if not exists public.app_settings (
+  id             int primary key default 1,
+  nombre_negocio text not null default '',
+  constraint app_settings_singleton check (id = 1)
+);
+insert into public.app_settings (id) values (1) on conflict (id) do nothing;
+
 -- ------------------------------------------------------------
 -- Row Level Security
 -- Proyecto de un solo inquilino: cualquier usuario AUTENTICADO tiene acceso
@@ -76,12 +84,13 @@ alter table public.recipes               enable row level security;
 alter table public.recipe_ingredients    enable row level security;
 alter table public.invoices              enable row level security;
 alter table public.invoice_items         enable row level security;
+alter table public.app_settings          enable row level security;
 
 do $$
 declare t text;
 begin
   foreach t in array array[
-    'inventory_ingredients','recipes','recipe_ingredients','invoices','invoice_items'
+    'inventory_ingredients','recipes','recipe_ingredients','invoices','invoice_items','app_settings'
   ] loop
     execute format('drop policy if exists %I_auth_all on public.%I', t, t);
     execute format(

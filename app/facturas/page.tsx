@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ConfirmarFactura } from "@/components/ConfirmarFactura";
 import { EscanearFactura } from "@/components/EscanearFactura";
-import { Card, Money, PageTitle } from "@/components/ui";
+import { Card, Eyebrow, Money, PageTitle } from "@/components/ui";
 import { colors, numeric } from "@/lib/tokens";
 import type { CamposFacturaOCR } from "@/lib/factura-ocr";
 import { useStore } from "@/components/StoreProvider";
@@ -21,23 +21,29 @@ export default function FacturasPage() {
       />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        <EscanearFactura
-          onDetectado={(campos) => {
-            setPreset(campos);
-            setFormKey((k) => k + 1);
-          }}
-        />
+        <div>
+          <Eyebrow>Paso 1 · Escanear (opcional)</Eyebrow>
+          <EscanearFactura
+            onDetectado={(campos) => {
+              setPreset(campos);
+              setFormKey((k) => k + 1);
+            }}
+          />
+        </div>
 
-        <ConfirmarFactura
-          key={formKey}
-          inventario={inventario}
-          preset={preset}
-          onConfirmar={(f) => {
-            addFactura(f);
-            setPreset(undefined);
-            setFormKey((k) => k + 1);
-          }}
-        />
+        <div>
+          <Eyebrow>Paso 2 · Confirmar y aplicar al inventario</Eyebrow>
+          <ConfirmarFactura
+            key={formKey}
+            inventario={inventario}
+            preset={preset}
+            onConfirmar={(f) => {
+              addFactura(f);
+              setPreset(undefined);
+              setFormKey((k) => k + 1);
+            }}
+          />
+        </div>
 
         {facturas.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

@@ -1,4 +1,4 @@
-import { colors, numeric, radius } from "@/lib/tokens";
+import { colors, font, numeric, radius } from "@/lib/tokens";
 
 export function formatMoney(n: number): string {
   return `RD$${n.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -6,7 +6,7 @@ export function formatMoney(n: number): string {
 
 export function Money({ value, alert }: { value: number; alert?: boolean }) {
   return (
-    <span style={{ ...numeric, color: alert ? colors.accent : colors.text, fontWeight: 600 }}>
+    <span style={{ ...numeric, color: alert ? colors.accent : colors.text, fontWeight: 700 }}>
       {formatMoney(value)}
     </span>
   );
@@ -24,8 +24,8 @@ export function Card({
       style={{
         background: colors.surface,
         border: `1px solid ${colors.border}`,
-        borderRadius: radius.md,
-        padding: 16,
+        borderRadius: radius.lg,
+        padding: 18,
         ...style,
       }}
     >
@@ -36,12 +36,62 @@ export function Card({
 
 export function PageTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <header style={{ marginBottom: 24 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: colors.text }}>{title}</h1>
+    <header style={{ marginBottom: 26 }}>
+      <h1 style={{ fontFamily: font.family, fontSize: 26, fontWeight: 700, margin: 0, color: colors.text }}>
+        {title}
+      </h1>
       {subtitle && (
-        <p style={{ fontSize: 14, color: colors.textMuted, margin: "6px 0 0" }}>{subtitle}</p>
+        <p style={{ fontSize: 14, color: colors.textMuted, margin: "8px 0 0" }}>{subtitle}</p>
       )}
     </header>
+  );
+}
+
+export function Eyebrow({ children, color }: { children: React.ReactNode; color?: string }) {
+  return (
+    <div
+      style={{
+        fontSize: 11.5,
+        fontWeight: 700,
+        letterSpacing: 0.5,
+        textTransform: "uppercase",
+        color: color ?? colors.secondary,
+        marginBottom: 8,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function InitialChip({
+  label,
+  color,
+  size = 34,
+}: {
+  label: string;
+  color: string;
+  size?: number;
+}) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.28),
+        flexShrink: 0,
+        background: `${color}22`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: font.family,
+        fontWeight: 700,
+        color,
+        fontSize: Math.round(size * 0.38),
+      }}
+    >
+      {label}
+    </div>
   );
 }
 
@@ -68,9 +118,13 @@ export function EmptyState({
         padding: "48px 24px",
         textAlign: "center",
         borderStyle: "dashed",
+        borderColor: "#D8C7A8",
+        background: "#FFFDF8",
       }}
     >
-      <p style={{ fontSize: 15, fontWeight: 600, margin: 0, color: colors.text }}>{title}</p>
+      <p style={{ fontFamily: font.family, fontSize: 15, fontWeight: 600, margin: 0, color: colors.text }}>
+        {title}
+      </p>
       {hint && <p style={{ fontSize: 13, color: colors.textMuted, margin: 0, maxWidth: 380 }}>{hint}</p>}
       {actionLabel && (
         <button type="button" onClick={onAction} style={{ ...buttonStyle, marginTop: 6 }}>
@@ -88,14 +142,15 @@ export function Badge({ label, color }: { label: string; color?: string }) {
     <span
       style={{
         display: "inline-block",
-        fontSize: 11,
-        fontWeight: 600,
+        fontSize: 10,
+        fontWeight: 700,
         letterSpacing: 0.3,
         textTransform: "uppercase",
-        padding: "3px 8px",
+        padding: "3px 9px",
         borderRadius: 999,
         color: c,
         background: `${c}1A`,
+        whiteSpace: "nowrap",
       }}
     >
       {label}
@@ -119,10 +174,10 @@ export function categoriaColor(categoria?: string): string {
 }
 
 export const inputStyle: React.CSSProperties = {
-  fontSize: 14,
-  padding: "8px 10px",
+  fontSize: 13.5,
+  padding: "9px 11px",
   border: `1px solid ${colors.border}`,
-  borderRadius: radius.sm,
+  borderRadius: radius.sm + 2,
   background: colors.surface,
   color: colors.text,
   fontFamily: "inherit",
@@ -131,24 +186,24 @@ export const inputStyle: React.CSSProperties = {
 
 export const buttonStyle: React.CSSProperties = {
   fontSize: 14,
-  fontWeight: 600,
-  padding: "9px 16px",
-  borderRadius: radius.sm,
-  border: `2px solid ${colors.accent}`,
-  color: colors.accent,
-  background: "transparent",
+  fontWeight: 700,
+  padding: "10px 18px",
+  borderRadius: radius.sm + 3,
+  border: "none",
+  color: "#FFFFFF",
+  background: colors.accent,
   cursor: "pointer",
   fontFamily: "inherit",
 };
 
 export const ghostButtonStyle: React.CSSProperties = {
-  fontSize: 13,
-  fontWeight: 500,
+  fontSize: 12.5,
+  fontWeight: 600,
   padding: "6px 12px",
-  borderRadius: radius.sm,
+  borderRadius: radius.sm + 1,
   border: `1px solid ${colors.border}`,
   color: colors.textMuted,
-  background: colors.surface,
+  background: colors.bg,
   cursor: "pointer",
   fontFamily: "inherit",
 };

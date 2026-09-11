@@ -37,18 +37,18 @@ export default function RecetasPage() {
         ) : (
           <>
             {escalar && <EscaladorReceta receta={escalar} inventario={inventario} />}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 14 }}>
               {recetas.map((receta) => (
                 <RecetaCard
                   key={receta.id}
                   receta={receta}
                   inventario={inventario}
                   accion={
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 6, width: "100%" }}>
                       <button
                         type="button"
                         onClick={() => setEscalarId(receta.id === escalarId ? null : receta.id)}
-                        style={ghostButtonStyle}
+                        style={{ ...ghostButtonStyle, flex: 1, textAlign: "center" }}
                       >
                         {receta.id === escalarId ? "Cerrar escalador" : "Escalar"}
                       </button>

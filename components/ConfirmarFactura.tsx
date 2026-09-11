@@ -3,8 +3,11 @@
 import { useState } from "react";
 import type { BorradorFactura, FacturaItem, InventoryIngredient, Unit } from "@/lib/types";
 import type { CamposFacturaOCR } from "@/lib/factura-ocr";
-import { colors, numeric, radius } from "@/lib/tokens";
+import { colors, font, numeric, radius } from "@/lib/tokens";
 import { buttonStyle, formatMoney, inputStyle } from "./ui";
+
+const OCR_BORDER = "#E2B98A";
+const OCR_BG = "#FFF8EE";
 
 interface ConfirmarFacturaProps {
   inventario: InventoryIngredient[];
@@ -73,49 +76,55 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
     setTotalManual(null);
   }
 
+  const ocrFieldStyle = preset ? { ...inputStyle, borderColor: OCR_BORDER } : inputStyle;
+
   return (
     <div
       style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
-        borderRadius: radius.md,
-        padding: 20,
+        background: "#FFFDF8",
+        border: "1.5px dashed #D8C7A8",
+        borderRadius: radius.xl,
+        padding: 22,
         display: "flex",
         flexDirection: "column",
         gap: 14,
       }}
     >
       <div>
-        <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>Confirmar factura</h3>
-        <p style={{ fontSize: 12, color: colors.textFaint, margin: "4px 0 0" }}>
+        <h3 style={{ fontFamily: font.family, fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
+          Confirmar factura
+        </h3>
+        <p style={{ fontSize: 12, color: colors.textMuted, margin: "4px 0 0" }}>
           {preset
-            ? "Datos precargados por OCR. Revisá y corregí antes de guardar — al confirmar se suma al stock."
-            : "Cargá la factura a mano o escaneala arriba. Al confirmar se suma al stock."}
+            ? "Datos precargados por OCR (borde ámbar) — revisá y corregí antes de guardar."
+            : "O cargala a mano: proveedor, fecha e ítems comprados."}
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 12 }}>
+        <label style={{ fontSize: 11, color: colors.textMuted }}>
           Proveedor
-          <input value={proveedor} onChange={(e) => setProveedor(e.target.value)} style={inputStyle} />
+          <input value={proveedor} onChange={(e) => setProveedor(e.target.value)} style={ocrFieldStyle} />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={{ fontSize: 11, color: colors.textMuted }}>
           Fecha
-          <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} />
+          <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={ocrFieldStyle} />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={{ fontSize: 11, color: colors.textMuted }}>
           RNC
-          <input value={rnc} onChange={(e) => setRnc(e.target.value)} placeholder="000-0000000-0" style={inputStyle} />
+          <input value={rnc} onChange={(e) => setRnc(e.target.value)} placeholder="000-0000000-0" style={ocrFieldStyle} />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={{ fontSize: 11, color: colors.textMuted }}>
           NCF
-          <input value={ncf} onChange={(e) => setNcf(e.target.value)} placeholder="B0100000000" style={inputStyle} />
+          <input value={ncf} onChange={(e) => setNcf(e.target.value)} placeholder="B0100000000" style={ocrFieldStyle} />
         </label>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ítems</span>
-        {items.map((it, i) => (
+        {items.map((it, i) => {
+          const deOcr = Boolean(preset) && i < (preset?.items?.length ?? 0);
+          return (
           <div
             key={i}
             style={{
@@ -123,7 +132,8 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
               gridTemplateColumns: "1.4fr 0.6fr 0.7fr 0.8fr 1fr auto",
               gap: 8,
               alignItems: "center",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${deOcr ? OCR_BORDER : colors.border}`,
+              background: deOcr ? OCR_BG : "transparent",
               borderRadius: 8,
               padding: 8,
             }}
@@ -181,7 +191,8 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
               ✕
             </button>
           </div>
-        ))}
+          );
+        })}
         <button
           type="button"
           onClick={() => setItems((prev) => [...prev, filaVacia()])}

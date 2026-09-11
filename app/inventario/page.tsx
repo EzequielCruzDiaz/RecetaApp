@@ -16,7 +16,7 @@ export default function InventarioPage() {
     <>
       <PageTitle
         title="Inventario"
-        subtitle="Ingredientes, precio de compra y stock. El borde rojo marca stock bajo el mínimo."
+        subtitle='Ingredientes, precio de compra y stock. Cuando el stock actual llega al mínimo, se marca "Stock bajo".'
       />
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {inventario.length === 0 ? (
