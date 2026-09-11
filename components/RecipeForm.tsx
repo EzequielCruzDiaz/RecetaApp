@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { InventoryIngredient, Receta, RecetaIngrediente } from "@/lib/types";
 import { computeRecipeCost } from "@/lib/conversion";
-import { colors, numeric, radius } from "@/lib/tokens";
+import { colors, font, numeric, radius } from "@/lib/tokens";
 import { buttonStyle, formatMoney, inputStyle } from "./ui";
 import { IngredientRow } from "./IngredientRow";
 
@@ -64,18 +64,25 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
   return (
     <div
       style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
-        borderRadius: radius.md,
-        padding: 20,
+        background: "#FFFDF8",
+        border: "1.5px dashed #D8C7A8",
+        borderRadius: radius.xl,
+        padding: 22,
         display: "flex",
         flexDirection: "column",
         gap: 14,
       }}
     >
-      <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
-        {recetaInicial ? "Editar receta" : "Nueva receta"}
-      </h3>
+      <div>
+        <h3 style={{ fontFamily: font.family, fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
+          {recetaInicial ? "Editar receta" : "Agregar una receta"}
+        </h3>
+        {!recetaInicial && (
+          <p style={{ fontSize: 12, color: colors.textMuted, margin: "4px 0 0" }}>
+            Elegí ingredientes del inventario y cuánto usa esta receta de cada uno — el costo se calcula solo.
+          </p>
+        )}
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 10 }}>
         <label style={{ fontSize: 12, color: colors.textMuted }}>

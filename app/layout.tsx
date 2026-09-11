@@ -1,20 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/components/StoreProvider";
 import { AppShell } from "@/components/AppShell";
 import { AuthGate } from "@/components/AuthGate";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  style: ["normal", "italic"],
+  variable: "--font-poppins",
+});
 
 export const metadata: Metadata = {
-  applicationName: "RecetApp",
-  title: "RecetApp — Costeo de recetas e inventario",
+  applicationName: "RecetarioRD",
+  title: "RecetarioRD — Costeo de recetas e inventario",
   description:
     "Costeo de recetas, control de inventario y registro de facturas para negocios de food service.",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "RecetApp", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "RecetarioRD", statusBarStyle: "default" },
   // iOS < 16.4 solo reconoce el meta con prefijo apple-.
   other: { "apple-mobile-web-app-capable": "yes" },
 };
@@ -27,7 +32,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={inter.variable}>
+    <html lang="es" className={poppins.variable}>
       <body>
         <AuthGate>
           <StoreProvider>

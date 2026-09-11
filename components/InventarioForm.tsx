@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { BorradorInventoryIngredient, PieceUnit, Unit, UnitCategory } from "@/lib/types";
-import { colors, numeric, radius } from "@/lib/tokens";
+import { colors, font, numeric, radius } from "@/lib/tokens";
 import { buttonStyle, inputStyle } from "./ui";
 
 const PIEZAS: PieceUnit[] = ["unidad", "docena", "diente", "atado", "lata", "paquete", "saco", "caja"];
@@ -49,16 +49,18 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
     <form
       onSubmit={submit}
       style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
-        borderRadius: radius.md,
-        padding: 20,
+        background: "#FFFDF8",
+        border: "1.5px dashed #D8C7A8",
+        borderRadius: radius.xl,
+        padding: 22,
         display: "flex",
         flexDirection: "column",
         gap: 12,
       }}
     >
-      <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: colors.text }}>Agregar ingrediente</h3>
+      <h3 style={{ fontFamily: font.family, fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
+        Agregar ingrediente
+      </h3>
 
       <input
         placeholder="Nombre"
@@ -109,7 +111,7 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
             style={{ ...inputStyle, ...numeric }}
           />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={{ fontSize: 12, color: colors.textMuted, display: "flex", flexDirection: "column", gap: 4 }}>
           Stock actual
           <input
             type="number"
@@ -117,8 +119,9 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
             onChange={(e) => setStock(Number(e.target.value))}
             style={{ ...inputStyle, ...numeric }}
           />
+          <span style={{ fontSize: 10.5, color: colors.textFaint }}>Cuánto hay ahora mismo en el almacén.</span>
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={{ fontSize: 12, color: colors.textMuted, display: "flex", flexDirection: "column", gap: 4 }}>
           Stock mínimo
           <input
             type="number"
@@ -126,6 +129,9 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
             onChange={(e) => setStockMinimo(Number(e.target.value))}
             style={{ ...inputStyle, ...numeric }}
           />
+          <span style={{ fontSize: 10.5, color: colors.textFaint }}>
+            Cuando el stock actual llegue a este número, aparece como &quot;Stock bajo&quot;.
+          </span>
         </label>
       </div>
 
@@ -166,7 +172,7 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
       )}
 
       <button type="submit" style={{ ...buttonStyle, alignSelf: "flex-start" }}>
-        Agregar
+        Guardar ingrediente
       </button>
     </form>
   );

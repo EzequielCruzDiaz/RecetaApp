@@ -1,4 +1,5 @@
 import type {
+  AppConfig,
   BorradorFactura,
   BorradorInventoryIngredient,
   Factura,
@@ -203,5 +204,25 @@ export async function crearFactura(b: BorradorFactura): Promise<void> {
       ingredient_id: it.ingredientId ?? null,
     })) as unknown as Json,
   });
+  if (error) throw error;
+}
+
+// ── Configuración ────────────────────────────────────────────
+
+export async function fetchConfig(): Promise<AppConfig> {
+  const { data, error } = await getSupabase()
+    .from("app_settings")
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw error;
+  return { nombreNegocio: data?.nombre_negocio ?? "" };
+}
+
+export async function actualizarConfig(patch: Partial<AppConfig>): Promise<void> {
+  const row: Database["public"]["Tables"]["app_settings"]["Update"] = {};
+  if (patch.nombreNegocio !== undefined) row.nombre_negocio = patch.nombreNegocio;
+
+  const { error } = await getSupabase().from("app_settings").update(row).eq("id", 1);
   if (error) throw error;
 }
