@@ -3,7 +3,6 @@ import { ImageResponse } from "next/og";
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
-// Placeholder: olla de cocina. Reemplazar por el logo real del cliente.
 export default function AppleIcon() {
   return new ImageResponse(
     (

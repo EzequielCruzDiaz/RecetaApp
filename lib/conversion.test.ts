@@ -45,13 +45,11 @@ describe("computeIngredientCost", () => {
   });
 
   it("convierte entre unidades de peso", () => {
-    // 500 g a $50/kg => RD$25
     expect(computeIngredientCost(ingrediente({ precioCompra: 50 }), 500, "g")).toBeCloseTo(25);
   });
 
   it("convierte entre unidades de volumen", () => {
     const ing = ingrediente({ categoria: "volumen", unidadCompra: "L", precioCompra: 80 });
-    // 250 ml a $80/L => RD$20
     expect(computeIngredientCost(ing, 250, "ml")).toBeCloseTo(20);
   });
 
@@ -61,7 +59,6 @@ describe("computeIngredientCost", () => {
       precioCompra: 100,
       equivalencia: { unidadPieza: "diente", cantidad: 5, unidadBase: "g" },
     });
-    // 4 dientes x 5g = 20g = 0.02kg => RD$2
     expect(computeIngredientCost(ing, 4, "diente")).toBeCloseTo(2);
   });
 
@@ -72,7 +69,6 @@ describe("computeIngredientCost", () => {
       precioCompra: 120,
       equivalencia: { unidadPieza: "docena", cantidad: 600, unidadBase: "g" },
     });
-    // 300g de 600g/docena = 0.5 docena => RD$60
     expect(computeIngredientCost(ing, 300, "g")).toBeCloseTo(60);
   });
 

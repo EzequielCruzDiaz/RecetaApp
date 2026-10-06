@@ -1,7 +1,3 @@
-// Tipos del schema (ver supabase/schema.sql). Escritos a mano porque todavía
-// no hay proyecto. Cuando exista, se pueden regenerar con:
-//   npx supabase gen types typescript --project-id <id> > lib/supabase/database.types.ts
-
 export type Json =
   | string
   | number

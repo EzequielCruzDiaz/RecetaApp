@@ -17,8 +17,6 @@ interface ConfirmarFacturaProps {
 
 const hoy = () => new Date().toISOString().slice(0, 10);
 
-// RNC/NCF tienen formato fijo (dígitos+guiones / letra+dígitos) — filtrar lo
-// que no corresponde en vez de dejar pasar cualquier caracter.
 const soloRnc = (s: string) => s.replace(/[^0-9-]/g, "").slice(0, 13);
 const soloNcf = (s: string) => s.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 11);
 
@@ -137,10 +135,6 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ítems</span>
-        {/* Flex-wrap en vez de grid de 6 columnas fijas: en pantallas
-            angostas los campos pasan a la línea siguiente en vez de
-            aplastarse (y un grid forzaría overflow-y:auto en el contenedor,
-            lo que recortaría el panel desplegable del Select). */}
         {items.map((it, i) => {
           const deOcr = Boolean(preset) && i < (preset?.items?.length ?? 0);
           return (

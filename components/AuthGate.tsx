@@ -52,7 +52,6 @@ function LoginForm() {
       setError(error.message);
       setEnviando(false);
     }
-    // Si funciona, onAuthStateChange en <Gate> cambia el estado a "dentro".
   }
 
   return (

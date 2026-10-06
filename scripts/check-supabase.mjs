@@ -1,11 +1,3 @@
-#!/usr/bin/env node
-// Verifica que Supabase esté bien conectado antes de confiar en el modo
-// Supabase de la app. Uso: npm run supabase:check
-//
-// No depende de que exista .env.local todavía -- si no existe, o si faltan
-// las variables, lo dice y sale en 0 (es el estado normal mientras no se
-// haya creado el proyecto; ver docs/SUPABASE.md).
-
 import { existsSync, readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 

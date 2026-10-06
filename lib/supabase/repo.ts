@@ -19,7 +19,6 @@ type RecetaIngRow = Database["public"]["Tables"]["recipe_ingredients"]["Row"];
 type FacturaRow = Database["public"]["Tables"]["invoices"]["Row"];
 type FacturaItemRow = Database["public"]["Tables"]["invoice_items"]["Row"];
 
-// ── Mappers row → tipo de dominio ─────────────────────────────
 
 function aIngrediente(r: IngRow): InventoryIngredient {
   return {
@@ -81,7 +80,6 @@ function aFactura(r: FacturaRow & { invoice_items: FacturaItemRow[] }): Factura 
   };
 }
 
-// ── Inventario ───────────────────────────────────────────────
 
 export async function fetchInventario(): Promise<InventoryIngredient[]> {
   const { data, error } = await getSupabase()
@@ -139,7 +137,6 @@ export async function borrarIngrediente(id: string): Promise<void> {
   if (error) throw error;
 }
 
-// ── Recetas ──────────────────────────────────────────────────
 
 export async function fetchRecetas(): Promise<Receta[]> {
   const { data, error } = await getSupabase()
@@ -175,7 +172,6 @@ export async function borrarReceta(id: string): Promise<void> {
   if (error) throw error;
 }
 
-// ── Facturas ─────────────────────────────────────────────────
 
 export async function fetchFacturas(): Promise<Factura[]> {
   const { data, error } = await getSupabase()
@@ -207,7 +203,6 @@ export async function crearFactura(b: BorradorFactura): Promise<void> {
   if (error) throw error;
 }
 
-// ── Configuración ────────────────────────────────────────────
 
 export async function fetchConfig(): Promise<AppConfig> {
   const { data, error } = await getSupabase()

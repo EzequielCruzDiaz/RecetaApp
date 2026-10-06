@@ -20,7 +20,6 @@ export const metadata: Metadata = {
     "Costeo de recetas, control de inventario y registro de facturas para negocios de food service.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "Cuadre", statusBarStyle: "default" },
-  // iOS < 16.4 solo reconoce el meta con prefijo apple-.
   other: { "apple-mobile-web-app-capable": "yes" },
 };
 

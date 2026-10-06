@@ -5,9 +5,7 @@ export const colors = {
   textMuted: "#6B7A6C",
   textFaint: "#8A8878",
   border: "#EADFC7",
-  // accionable / alerta — nunca decorativo (ver AGENTS.md)
   accent: "#B8471F",
-  // papaya — acento decorativo (sidebar activo, hero, eyebrows)
   secondary: "#E2793A",
   positive: "#4C6B4F",
   sidebarBg: "#1E2A1F",

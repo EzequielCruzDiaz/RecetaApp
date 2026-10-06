@@ -45,7 +45,6 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Navegación: red primero, cache como respaldo offline.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -59,7 +58,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Estáticos de Next y assets de Tesseract: cache primero, revalida en segundo plano.
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/tesseract/")) {
     event.respondWith(
       caches.match(request).then((cached) => {

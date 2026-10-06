@@ -26,9 +26,6 @@ textarea {
   font: inherit;
 }
 
-/* Below this, el sidebar fijo de escritorio se convierte en: una barra
-   superior (marca + estado + instalar/salir) y una barra de navegación
-   fija abajo (las 4 pantallas). Ver AppShell.tsx para los className. */
 @media (max-width: 768px) {
   .app-shell {
     flex-direction: column;

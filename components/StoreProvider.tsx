@@ -58,8 +58,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Backend local (localStorage) ─────────────────────────────
-
 const KEY = "cuadre:v1";
 
 const SEED: StoreShape =
@@ -82,8 +80,6 @@ function readSnapshot(): StoreShape {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
-        // Snapshots previos pueden no tener todos los campos (ej. `config` se
-        // agregó después). Completar con defaults para no romper al leer.
         const parsed = JSON.parse(raw) as Partial<StoreShape>;
         memo = {
           inventario: parsed.inventario ?? [],
@@ -92,9 +88,7 @@ function readSnapshot(): StoreShape {
           config: parsed.config ?? { nombreNegocio: "" },
         };
       }
-    } catch {
-      /* localStorage no disponible */
-    }
+    } catch {}
   }
   return memo;
 }
@@ -103,9 +97,7 @@ function writeSnapshot(next: StoreShape) {
   memo = next;
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    /* localStorage no disponible */
-  }
+  } catch {}
   listeners.forEach((l) => l());
 }
 
@@ -198,8 +190,6 @@ function LocalStore({ children }: { children: React.ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-// ── Backend Supabase ─────────────────────────────────────────
-
 function SupabaseStore({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<StoreShape>({
     inventario: [],
@@ -210,7 +200,6 @@ function SupabaseStore({ children }: { children: React.ReactNode }) {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // No toca estado de forma síncrona: es seguro llamarla desde un efecto.
   const cargarDatos = useCallback(async () => {
     try {
       const [inventario, recetas, facturas, config] = await Promise.all([
@@ -229,8 +218,6 @@ function SupabaseStore({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Carga inicial desde un store externo (Supabase). El setState ocurre
-    // recién después del await; la regla no distingue ese caso.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void cargarDatos();
   }, [cargarDatos]);

@@ -73,8 +73,6 @@ function HeroBanner() {
         minHeight: 160,
       }}
     >
-      {/* Panel decorativo de fondo, a sangre completa — así el texto nunca
-          depende de una columna de grid que podría colapsar en mobile. */}
       <div
         style={{
           position: "absolute",

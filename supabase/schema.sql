@@ -1,13 +1,3 @@
--- ============================================================
--- Cuadre — schema para UN proyecto de Supabase (uno por cliente).
--- Pegar completo en: Supabase Dashboard -> SQL Editor -> New query -> Run.
--- Es re-ejecutable (usa "if not exists" / "or replace" / "drop ... if exists").
--- ============================================================
-
--- ------------------------------------------------------------
--- Tablas
--- ------------------------------------------------------------
-
 create table if not exists public.inventory_ingredients (
   id            uuid primary key default gen_random_uuid(),
   nombre        text not null,
@@ -65,19 +55,12 @@ create table if not exists public.invoice_items (
 create index if not exists invoice_items_invoice_id_idx
   on public.invoice_items(invoice_id);
 
--- Fila única de configuración del negocio (un solo inquilino por proyecto).
 create table if not exists public.app_settings (
   id             int primary key default 1,
   nombre_negocio text not null default '',
   constraint app_settings_singleton check (id = 1)
 );
 insert into public.app_settings (id) values (1) on conflict (id) do nothing;
-
--- ------------------------------------------------------------
--- Row Level Security
--- Proyecto de un solo inquilino: cualquier usuario AUTENTICADO tiene acceso
--- total. Sin sesión (anon), nada. La aislación entre clientes es por proyecto.
--- ------------------------------------------------------------
 
 alter table public.inventory_ingredients enable row level security;
 alter table public.recipes               enable row level security;
@@ -99,10 +82,6 @@ begin
     );
   end loop;
 end $$;
-
--- ------------------------------------------------------------
--- RPC: crear factura + aplicar al stock (en una sola transacción)
--- ------------------------------------------------------------
 
 create or replace function public.crear_factura(
   p_proveedor text,
@@ -152,10 +131,6 @@ begin
   return v_invoice_id;
 end $$;
 
--- ------------------------------------------------------------
--- RPC: guardar receta (insert o reemplazo) junto con sus ingredientes
--- ------------------------------------------------------------
-
 create or replace function public.guardar_receta(
   p_id                 uuid,
   p_nombre             text,
@@ -195,9 +170,3 @@ end $$;
 
 grant execute on function public.crear_factura(text, date, text, text, numeric, numeric, jsonb) to authenticated;
 grant execute on function public.guardar_receta(uuid, text, text, numeric, text, jsonb) to authenticated;
-
--- ============================================================
--- Listo. Siguiente paso: crear al menos un usuario en
--- Authentication -> Users, y copiar URL + anon key a .env.local
--- (ver docs/SUPABASE.md).
--- ============================================================
