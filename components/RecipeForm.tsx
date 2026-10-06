@@ -84,7 +84,7 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
         )}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
         <label style={{ fontSize: 12, color: colors.textMuted }}>
           Nombre
           <input value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />

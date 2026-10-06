@@ -70,12 +70,29 @@ function HeroBanner() {
         overflow: "hidden",
         marginBottom: 28,
         background: colors.text,
-        display: "grid",
-        gridTemplateColumns: "1.2fr 1fr",
         minHeight: 160,
       }}
     >
-      <div style={{ padding: "28px 30px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 8, zIndex: 1 }}>
+      {/* Panel decorativo de fondo, a sangre completa — así el texto nunca
+          depende de una columna de grid que podría colapsar en mobile. */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(circle at 80% 30%, ${colors.secondary}, transparent 55%), radial-gradient(circle at 95% 85%, ${colors.accent}, transparent 45%), linear-gradient(135deg, #33422F, ${colors.text})`,
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          padding: "28px 30px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 8,
+          minHeight: 160,
+        }}
+      >
         <div style={{ fontFamily: font.family, fontStyle: "italic", fontWeight: 500, fontSize: 19, color: colors.bg }}>
           Del fogón a la factura.
         </div>
@@ -83,11 +100,6 @@ function HeroBanner() {
           Costeá cada plato al centavo, controlá el inventario y no se te va ni un plátano sin registrar.
         </div>
       </div>
-      <div
-        style={{
-          background: `radial-gradient(circle at 25% 35%, ${colors.secondary}, transparent 60%), radial-gradient(circle at 85% 80%, ${colors.accent}, transparent 55%), linear-gradient(135deg, #33422F, ${colors.text})`,
-        }}
-      />
     </div>
   );
 }
@@ -126,7 +138,7 @@ export function Dashboard({ recetas, inventario }: DashboardProps) {
         </Stat>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
         <Card style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <h3 style={{ fontFamily: font.family, fontSize: 15, fontWeight: 600, margin: 0, color: colors.text }}>

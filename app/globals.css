@@ -25,3 +25,83 @@ select,
 textarea {
   font: inherit;
 }
+
+/* Below this, el sidebar fijo de escritorio se convierte en: una barra
+   superior (marca + estado + instalar/salir) y una barra de navegación
+   fija abajo (las 4 pantallas). Ver AppShell.tsx para los className. */
+@media (max-width: 768px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    overflow: visible;
+    z-index: 30;
+  }
+
+  .app-sidebar-blob {
+    display: none;
+  }
+
+  .app-sidebar-brand {
+    padding: 14px 16px !important;
+  }
+
+  .app-sidebar-footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0 16px 14px !important;
+    gap: 8px !important;
+  }
+
+  .app-sidebar-footer > div:first-child {
+    flex: 1;
+    min-width: 120px;
+    padding: 0 !important;
+    font-size: 10.5px !important;
+  }
+
+  .app-sidebar-footer button {
+    width: auto !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+
+  .app-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: row !important;
+    justify-content: space-around;
+    background: var(--sidebar-bg, #1e2a1f);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom)) !important;
+    gap: 0 !important;
+    z-index: 40;
+  }
+
+  .app-nav-link {
+    flex-direction: column;
+    gap: 2px !important;
+    padding: 6px 10px !important;
+    font-size: 10.5px !important;
+  }
+
+  .app-nav-link svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .app-main {
+    padding: 20px 16px calc(80px + env(safe-area-inset-bottom)) !important;
+  }
+}

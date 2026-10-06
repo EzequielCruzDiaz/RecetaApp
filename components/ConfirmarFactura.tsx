@@ -106,7 +106,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
         <label style={{ fontSize: 11, color: colors.textMuted }}>
           Proveedor
           <input value={proveedor} onChange={(e) => setProveedor(e.target.value)} style={ocrFieldStyle} />
@@ -137,14 +137,18 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ítems</span>
+        {/* Flex-wrap en vez de grid de 6 columnas fijas: en pantallas
+            angostas los campos pasan a la línea siguiente en vez de
+            aplastarse (y un grid forzaría overflow-y:auto en el contenedor,
+            lo que recortaría el panel desplegable del Select). */}
         {items.map((it, i) => {
           const deOcr = Boolean(preset) && i < (preset?.items?.length ?? 0);
           return (
           <div
             key={i}
             style={{
-              display: "grid",
-              gridTemplateColumns: "1.4fr 0.6fr 0.7fr 0.8fr 1fr auto",
+              display: "flex",
+              flexWrap: "wrap",
               gap: 8,
               alignItems: "center",
               border: `1px solid ${deOcr ? OCR_BORDER : colors.border}`,
@@ -157,17 +161,18 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
               placeholder="Descripción"
               value={it.nombre}
               onChange={(e) => setItem(i, { nombre: e.target.value })}
-              style={{ ...inputStyle, fontSize: 13 }}
+              style={{ ...inputStyle, fontSize: 13, flex: "2 1 160px" }}
             />
             <NumberInput
               value={it.cantidad}
               onChange={(cantidad) => setItem(i, { cantidad })}
-              style={{ ...inputStyle, fontSize: 13, ...numeric }}
+              style={{ ...inputStyle, fontSize: 13, ...numeric, flex: "1 1 72px" }}
             />
             <Select
               value={it.unidad ?? ""}
               onChange={(v) => setItem(i, { unidad: (v || null) as Unit | null })}
               placeholder="u."
+              style={{ flex: "1 1 84px" }}
               options={[
                 { value: "", label: "u." },
                 { value: "lb", label: "lb" },
@@ -182,12 +187,13 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
             <NumberInput
               value={it.precioUnitario}
               onChange={(precioUnitario) => setItem(i, { precioUnitario })}
-              style={{ ...inputStyle, fontSize: 13, ...numeric }}
+              style={{ ...inputStyle, fontSize: 13, ...numeric, flex: "1 1 90px" }}
             />
             <Select
               value={it.ingredientId ?? ""}
               onChange={(v) => setItem(i, { ingredientId: v || undefined })}
               placeholder="— sin vincular —"
+              style={{ flex: "1.4 1 150px" }}
               options={[
                 { value: "", label: "— sin vincular —" },
                 ...inventario.map((ing) => ({ value: ing.id, label: ing.nombre })),
@@ -197,7 +203,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
               type="button"
               onClick={() => setItems((prev) => prev.filter((_, idx) => idx !== i))}
               aria-label="Quitar ítem"
-              style={{ border: "none", background: "transparent", color: colors.textFaint, cursor: "pointer", fontSize: 13 }}
+              style={{ border: "none", background: "transparent", color: colors.textFaint, cursor: "pointer", fontSize: 13, flexShrink: 0 }}
             >
               ✕
             </button>
