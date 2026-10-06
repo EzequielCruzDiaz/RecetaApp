@@ -211,20 +211,13 @@ export const ghostButtonStyle: React.CSSProperties = {
   fontFamily: "inherit",
 };
 
-/**
- * Input numérico controlado que no pisa lo que el usuario está escribiendo.
- *
- * El problema de `<input type="number" value={n} onChange={...Number(e.target.value)}>`:
- * como `value` siempre es un número, el campo nunca puede quedar vacío — al
- * borrar el único dígito, `Number("")` da 0, el estado vuelve a 0 y el "0"
- * reaparece solo. El usuario termina sin poder borrar el cero inicial y
- * tipeando "encima" (ej. "0231" en vez de "231").
- *
- * Acá el valor mostrado es un string local que se sincroniza con `value`
- * solo cuando cambia desde afuera (no en cada tecleo), así el campo puede
- * quedar vacío mientras se edita y recién se corrige (vuelve al último
- * válido) al perder el foco.
- */
+function limpiarNumero(raw: string): string {
+  const soloDigitosYPunto = raw.replace(/[^0-9.]/g, "");
+  const i = soloDigitosYPunto.indexOf(".");
+  if (i === -1) return soloDigitosYPunto;
+  return soloDigitosYPunto.slice(0, i + 1) + soloDigitosYPunto.slice(i + 1).replace(/\./g, "");
+}
+
 export function NumberInput({
   value,
   onChange,
@@ -238,9 +231,6 @@ export function NumberInput({
   const [texto, setTexto] = useState(String(value));
   const [valorPrevio, setValorPrevio] = useState(value);
 
-  // Resincronizar durante el render (no en un efecto) cuando `value` cambia
-  // desde afuera y no coincide con lo que el usuario está tecleando — patrón
-  // recomendado por React para "ajustar estado cuando cambia una prop".
   if (value !== valorPrevio) {
     setValorPrevio(value);
     if (Number(texto) !== value) setTexto(String(value));
@@ -257,9 +247,9 @@ export function NumberInput({
         rest.onFocus?.(e);
       }}
       onChange={(e) => {
-        const raw = e.target.value;
+        const raw = limpiarNumero(e.target.value);
         setTexto(raw);
-        if (raw === "" || raw === "-") return;
+        if (raw === "" || raw === ".") return;
         const n = Number(raw);
         if (!Number.isNaN(n)) onChange(n);
       }}
@@ -278,16 +268,6 @@ export interface SelectOption {
   group?: string;
 }
 
-/**
- * Reemplazo de `<select>` nativo.
- *
- * El `<select>` nativo delega el listado de opciones al SO/navegador: no se
- * puede controlar dónde abre, su tamaño ni la transparencia del fondo. En
- * Windows/Chromium eso puede resultar en un panel gigante que tapa media
- * pantalla en vez de un desplegable chico debajo del campo. Este componente
- * es un listbox propio (botón + panel posicionado con CSS) que sí controla
- * todo eso.
- */
 export function Select({
   value,
   onChange,
