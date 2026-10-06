@@ -12,6 +12,14 @@ function irAlForm() {
 export default function InventarioPage() {
   const { inventario, addIngrediente, updateIngrediente, removeIngrediente } = useStore();
 
+  function confirmarYQuitar(id: string) {
+    const ing = inventario.find((i) => i.id === id);
+    const nombre = ing?.nombre ?? "este ingrediente";
+    if (confirm(`¿Quitar "${nombre}" del inventario? Esta acción no se puede deshacer.`)) {
+      removeIngrediente(id);
+    }
+  }
+
   return (
     <>
       <PageTitle
@@ -30,7 +38,7 @@ export default function InventarioPage() {
           <InventarioList
             inventario={inventario}
             onUpdate={updateIngrediente}
-            onRemove={removeIngrediente}
+            onRemove={confirmarYQuitar}
           />
         )}
         <div id="form-inventario">

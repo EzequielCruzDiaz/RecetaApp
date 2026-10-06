@@ -18,6 +18,12 @@ export default function RecetasPage() {
   const escalar = recetas.find((r) => r.id === escalarId) ?? null;
   const vacio = recetas.length === 0;
 
+  function confirmarYBorrar(nombre: string, id: string) {
+    if (confirm(`¿Borrar la receta "${nombre}"? Esta acción no se puede deshacer.`)) {
+      removeReceta(id);
+    }
+  }
+
   return (
     <>
       <PageTitle title="Recetas" subtitle="Costeá recetas contra el inventario y escalá la producción." />
@@ -52,7 +58,11 @@ export default function RecetasPage() {
                       >
                         {receta.id === escalarId ? "Cerrar escalador" : "Escalar"}
                       </button>
-                      <button type="button" onClick={() => removeReceta(receta.id)} style={ghostButtonStyle}>
+                      <button
+                        type="button"
+                        onClick={() => confirmarYBorrar(receta.nombre, receta.id)}
+                        style={ghostButtonStyle}
+                      >
                         Borrar
                       </button>
                     </div>
