@@ -8,16 +8,34 @@ Tiempo estimado: ~15 min.
 
 ---
 
+## 0. Si todavía no existe ni la cuenta
+
+No hace falta nada previo — ni tarjeta de crédito para el plan Free.
+
+1. Entrar a <https://supabase.com/dashboard> → **Sign in** → crear cuenta
+   (con GitHub o email).
+2. Al entrar por primera vez pide crear una **Organization** (no es lo mismo
+   que un proyecto — es el contenedor que agrupa proyectos, para
+   facturación/equipo):
+   - **Name**: tu nombre o el del negocio que vende Cuadre (ej. `tu-nombre` o
+     `cuadre-apps`) — es interno, no lo ve el cliente final.
+   - **Type**: *Personal* alcanza si sos vos solo administrando.
+   - **Plan**: *Free*.
+3. Con la organización creada, seguís directo al paso 1 — **un proyecto por
+   cliente dentro de esa misma organización** (no hace falta una org nueva
+   por cliente).
+
+---
+
 ## 1. Crear el proyecto
 
-1. Entrar a <https://supabase.com> → **Sign in** → **New project**.
-2. Elegir la organización (o crear una gratis).
-3. Completar:
+1. Desde el dashboard de la organización → **New project**.
+2. Completar:
    - **Name**: `cuadre-<cliente>` (ej. `cuadre-slyking`).
    - **Database Password**: generar una fuerte y **guardarla** (se usa para backups / acceso directo a Postgres).
    - **Region**: la más cercana al cliente (para RD: `East US (North Virginia)`).
    - **Plan**: Free alcanza para empezar; subir a Pro si el cliente necesita backups diarios y más límites.
-4. **Create new project** y esperar 1–2 min a que termine de aprovisionar.
+3. **Create new project** y esperar 1–2 min a que termine de aprovisionar.
 
 ---
 
@@ -75,6 +93,16 @@ Tiempo estimado: ~15 min.
 ---
 
 ## 5. Probar
+
+Primero, una verificación rápida sin levantar la app — confirma que las
+variables están bien y que las 6 tablas responden:
+
+```bash
+npm run supabase:check
+```
+
+Si algo falla ahí, el mensaje dice cuál tabla y por qué (típicamente: el
+schema no corrió, o la URL/key están mal copiadas). Con eso en verde:
 
 ```bash
 npm run build
