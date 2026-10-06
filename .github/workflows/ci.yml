@@ -27,6 +27,12 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Generar tipos de rutas
+        # `LayoutProps`/`PageProps` son generados por Next (typed routes) en
+        # .next/types; no están en git. Sin este paso, tsc no los encuentra
+        # en una máquina limpia (sí funciona en local si ya corriste dev/build).
+        run: npx next typegen
+
       - name: Typecheck
         run: npm run typecheck
 
