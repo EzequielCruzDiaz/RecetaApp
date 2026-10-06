@@ -1,0 +1,3 @@
+# Requiere tu aprobación en cada PR antes de poder mergear
+# (activalo en Settings → Branches → Require review from Code Owners).
+* @EzequielCruzDiaz
