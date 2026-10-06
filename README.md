@@ -1,4 +1,4 @@
-# RecetApp
+# Cuadre
 
 App de **costeo de recetas e inventario** para negocios de food service dominicanos.
 Cliente inicial: Slyking Group.

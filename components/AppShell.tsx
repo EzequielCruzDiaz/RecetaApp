@@ -113,7 +113,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </svg>
           </div>
           <div style={{ fontFamily: font.family, fontSize: 19, fontWeight: 700, color: colors.sidebarText, lineHeight: 1 }}>
-            RecetarioRD
+            Cuadre
           </div>
         </div>
 

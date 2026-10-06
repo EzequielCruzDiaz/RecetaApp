@@ -82,7 +82,7 @@ function LoginForm() {
         }}
       >
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: colors.text }}>RecetApp</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: colors.text }}>Cuadre</h1>
           <p style={{ fontSize: 13, color: colors.textMuted, margin: "4px 0 0" }}>
             Ingresá con tu cuenta.
           </p>

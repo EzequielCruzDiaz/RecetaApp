@@ -12,10 +12,13 @@ export default function ResumenPage() {
 
   return (
     <>
-      <ResumenHeader nombreNegocio={config.nombreNegocio} onGuardarNombre={updateNombreNegocio} />
+      <ResumenHeader
+        nombreNegocio={config.nombreNegocio}
+        onGuardarNombre={updateNombreNegocio}
+      />
       {sinDatos ? (
         <EmptyState
-          title="Bienvenido a RecetApp"
+          title="Bienvenido a Cuadre"
           hint="Empezá cargando tu inventario de ingredientes. Con eso vas a poder costear recetas, escalar producción y registrar facturas."
         >
           <Link href="/inventario" style={{ fontSize: 13, color: "inherit" }}>

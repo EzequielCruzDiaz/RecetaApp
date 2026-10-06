@@ -60,7 +60,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
 // ── Backend local (localStorage) ─────────────────────────────
 
-const KEY = "recetapp:v1";
+const KEY = "cuadre:v1";
 
 const SEED: StoreShape =
   process.env.NODE_ENV === "development"

@@ -1,4 +1,4 @@
-# Conectar RecetApp a Supabase
+# Conectar Cuadre a Supabase
 
 Se hace **una vez por cliente** (cada cliente tiene su propio proyecto de Supabase).
 Mientras no haya `.env.local` con las variables, la app funciona en modo local
@@ -13,7 +13,7 @@ Tiempo estimado: ~15 min.
 1. Entrar a <https://supabase.com> → **Sign in** → **New project**.
 2. Elegir la organización (o crear una gratis).
 3. Completar:
-   - **Name**: `recetapp-<cliente>` (ej. `recetapp-slyking`).
+   - **Name**: `cuadre-<cliente>` (ej. `cuadre-slyking`).
    - **Database Password**: generar una fuerte y **guardarla** (se usa para backups / acceso directo a Postgres).
    - **Region**: la más cercana al cliente (para RD: `East US (North Virginia)`).
    - **Plan**: Free alcanza para empezar; subir a Pro si el cliente necesita backups diarios y más límites.
@@ -81,7 +81,7 @@ npm run build
 npm start          # o el deploy
 ```
 
-- Al abrir la app ahora pide **login** (pantalla de RecetApp con email + contraseña).
+- Al abrir la app ahora pide **login** (pantalla de Cuadre con email + contraseña).
 - Entrar con el usuario del paso 3.
 - Inventario / Recetas / Facturas arrancan **vacíos** (los datos viven en Supabase).
 - Probar: agregar un ingrediente → recargar la página → sigue ahí.

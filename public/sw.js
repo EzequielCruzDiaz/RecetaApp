@@ -1,6 +1,6 @@
 const VERSION = "v1";
-const APP_CACHE = `recetapp-app-${VERSION}`;
-const ASSET_CACHE = `recetapp-assets-${VERSION}`;
+const APP_CACHE = `cuadre-app-${VERSION}`;
+const ASSET_CACHE = `cuadre-assets-${VERSION}`;
 
 const PRECACHE = [
   "/",

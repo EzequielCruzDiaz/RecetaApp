@@ -1,5 +1,5 @@
 -- ============================================================
--- RecetApp — schema para UN proyecto de Supabase (uno por cliente).
+-- Cuadre — schema para UN proyecto de Supabase (uno por cliente).
 -- Pegar completo en: Supabase Dashboard -> SQL Editor -> New query -> Run.
 -- Es re-ejecutable (usa "if not exists" / "or replace" / "drop ... if exists").
 -- ============================================================
