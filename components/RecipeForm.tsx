@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { InventoryIngredient, Receta, RecetaIngrediente } from "@/lib/types";
 import { computeRecipeCost } from "@/lib/conversion";
 import { colors, font, numeric, radius } from "@/lib/tokens";
-import { buttonStyle, formatMoney, inputStyle } from "./ui";
+import { buttonStyle, formatMoney, inputStyle, NumberInput, Select } from "./ui";
 import { IngredientRow } from "./IngredientRow";
 
 interface RecipeFormProps {
@@ -100,11 +100,10 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
         </label>
         <label style={{ fontSize: 12, color: colors.textMuted }}>
           Rendimiento
-          <input
-            type="number"
+          <NumberInput
             min={1}
             value={porciones}
-            onChange={(e) => setPorciones(Number(e.target.value))}
+            onChange={setPorciones}
             style={{ ...inputStyle, ...numeric }}
           />
         </label>
@@ -135,18 +134,13 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
           );
         })}
         {disponibles.length > 0 && (
-          <select
+          <Select
             value=""
-            onChange={(e) => e.target.value && agregarIngrediente(e.target.value)}
-            style={{ ...inputStyle, marginTop: 6 }}
-          >
-            <option value="">+ Agregar ingrediente</option>
-            {disponibles.map((i) => (
-              <option key={i.id} value={i.id}>
-                {i.nombre}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => v && agregarIngrediente(v)}
+            placeholder="+ Agregar ingrediente"
+            options={disponibles.map((i) => ({ value: i.id, label: i.nombre }))}
+            style={{ marginTop: 6 }}
+          />
         )}
       </div>
 

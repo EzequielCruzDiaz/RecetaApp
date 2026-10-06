@@ -1,5 +1,28 @@
 import type { Unit } from "@/lib/types";
 import { colors, font } from "@/lib/tokens";
+import { Select, type SelectOption } from "./ui";
+
+const OPCIONES_UNIDAD: SelectOption[] = [
+  { value: "g", label: "g", group: "Peso" },
+  { value: "kg", label: "kg", group: "Peso" },
+  { value: "lb", label: "lb", group: "Peso" },
+  { value: "oz", label: "oz", group: "Peso" },
+  { value: "ml", label: "ml", group: "Volumen" },
+  { value: "L", label: "L", group: "Volumen" },
+  { value: "cdta", label: "cdta", group: "Volumen" },
+  { value: "cda", label: "cda", group: "Volumen" },
+  { value: "taza", label: "taza", group: "Volumen" },
+  { value: "oz_liq", label: "oz líq.", group: "Volumen" },
+  { value: "galon", label: "galón", group: "Volumen" },
+  { value: "unidad", label: "unidad", group: "Pieza / empaque" },
+  { value: "docena", label: "docena", group: "Pieza / empaque" },
+  { value: "diente", label: "diente", group: "Pieza / empaque" },
+  { value: "atado", label: "atado", group: "Pieza / empaque" },
+  { value: "lata", label: "lata", group: "Pieza / empaque" },
+  { value: "paquete", label: "paquete", group: "Pieza / empaque" },
+  { value: "saco", label: "saco", group: "Pieza / empaque" },
+  { value: "caja", label: "caja", group: "Pieza / empaque" },
+];
 
 export interface UnitSelectorValue {
   cantidad: number | null;
@@ -59,40 +82,13 @@ export function UnitSelector({ value, onChange, unidadSugerida }: UnitSelectorPr
             onChange={(e) => onChange({ ...value, cantidad: e.target.value === "" ? null : Number(e.target.value) })}
             style={{ ...inputStyle, flex: 1 }}
           />
-          <select
+          <Select
             value={unidad ?? ""}
-            onChange={(e) => onChange({ ...value, unidad: e.target.value as Unit })}
-            style={{ ...inputStyle, width: 110 }}
-          >
-            <option value="" disabled>
-              Unidad
-            </option>
-            <optgroup label="Peso">
-              <option value="g">g</option>
-              <option value="kg">kg</option>
-              <option value="lb">lb</option>
-              <option value="oz">oz</option>
-            </optgroup>
-            <optgroup label="Volumen">
-              <option value="ml">ml</option>
-              <option value="L">L</option>
-              <option value="cdta">cdta</option>
-              <option value="cda">cda</option>
-              <option value="taza">taza</option>
-              <option value="oz_liq">oz líq.</option>
-              <option value="galon">galón</option>
-            </optgroup>
-            <optgroup label="Pieza / empaque">
-              <option value="unidad">unidad</option>
-              <option value="docena">docena</option>
-              <option value="diente">diente</option>
-              <option value="atado">atado</option>
-              <option value="lata">lata</option>
-              <option value="paquete">paquete</option>
-              <option value="saco">saco</option>
-              <option value="caja">caja</option>
-            </optgroup>
-          </select>
+            onChange={(v) => onChange({ ...value, unidad: v as Unit })}
+            placeholder="Unidad"
+            options={OPCIONES_UNIDAD}
+            style={{ width: 110 }}
+          />
         </div>
       )}
 

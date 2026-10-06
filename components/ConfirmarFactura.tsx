@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { BorradorFactura, FacturaItem, InventoryIngredient, Unit } from "@/lib/types";
 import type { CamposFacturaOCR } from "@/lib/factura-ocr";
 import { colors, font, numeric, radius } from "@/lib/tokens";
-import { buttonStyle, formatMoney, inputStyle } from "./ui";
+import { buttonStyle, formatMoney, inputStyle, NumberInput, Select } from "./ui";
 
 const OCR_BORDER = "#E2B98A";
 const OCR_BG = "#FFF8EE";
@@ -16,6 +16,11 @@ interface ConfirmarFacturaProps {
 }
 
 const hoy = () => new Date().toISOString().slice(0, 10);
+
+// RNC/NCF tienen formato fijo (dígitos+guiones / letra+dígitos) — filtrar lo
+// que no corresponde en vez de dejar pasar cualquier caracter.
+const soloRnc = (s: string) => s.replace(/[^0-9-]/g, "").slice(0, 13);
+const soloNcf = (s: string) => s.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 11);
 
 const filaVacia = (): FacturaItem => ({
   nombre: "",
@@ -112,11 +117,21 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
         </label>
         <label style={{ fontSize: 11, color: colors.textMuted }}>
           RNC
-          <input value={rnc} onChange={(e) => setRnc(e.target.value)} placeholder="000-0000000-0" style={ocrFieldStyle} />
+          <input
+            value={rnc}
+            onChange={(e) => setRnc(soloRnc(e.target.value))}
+            placeholder="000-0000000-0"
+            style={ocrFieldStyle}
+          />
         </label>
         <label style={{ fontSize: 11, color: colors.textMuted }}>
           NCF
-          <input value={ncf} onChange={(e) => setNcf(e.target.value)} placeholder="B0100000000" style={ocrFieldStyle} />
+          <input
+            value={ncf}
+            onChange={(e) => setNcf(soloNcf(e.target.value))}
+            placeholder="B0100000000"
+            style={ocrFieldStyle}
+          />
         </label>
       </div>
 
@@ -144,44 +159,40 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
               onChange={(e) => setItem(i, { nombre: e.target.value })}
               style={{ ...inputStyle, fontSize: 13 }}
             />
-            <input
-              type="number"
+            <NumberInput
               value={it.cantidad}
-              onChange={(e) => setItem(i, { cantidad: Number(e.target.value) })}
+              onChange={(cantidad) => setItem(i, { cantidad })}
               style={{ ...inputStyle, fontSize: 13, ...numeric }}
             />
-            <select
+            <Select
               value={it.unidad ?? ""}
-              onChange={(e) => setItem(i, { unidad: (e.target.value || null) as Unit | null })}
-              style={{ ...inputStyle, fontSize: 13 }}
-            >
-              <option value="">u.</option>
-              <option value="lb">lb</option>
-              <option value="kg">kg</option>
-              <option value="L">L</option>
-              <option value="unidad">unidad</option>
-              <option value="paquete">paquete</option>
-              <option value="caja">caja</option>
-              <option value="saco">saco</option>
-            </select>
-            <input
-              type="number"
+              onChange={(v) => setItem(i, { unidad: (v || null) as Unit | null })}
+              placeholder="u."
+              options={[
+                { value: "", label: "u." },
+                { value: "lb", label: "lb" },
+                { value: "kg", label: "kg" },
+                { value: "L", label: "L" },
+                { value: "unidad", label: "unidad" },
+                { value: "paquete", label: "paquete" },
+                { value: "caja", label: "caja" },
+                { value: "saco", label: "saco" },
+              ]}
+            />
+            <NumberInput
               value={it.precioUnitario}
-              onChange={(e) => setItem(i, { precioUnitario: Number(e.target.value) })}
+              onChange={(precioUnitario) => setItem(i, { precioUnitario })}
               style={{ ...inputStyle, fontSize: 13, ...numeric }}
             />
-            <select
+            <Select
               value={it.ingredientId ?? ""}
-              onChange={(e) => setItem(i, { ingredientId: e.target.value || undefined })}
-              style={{ ...inputStyle, fontSize: 13 }}
-            >
-              <option value="">— sin vincular —</option>
-              {inventario.map((ing) => (
-                <option key={ing.id} value={ing.id}>
-                  {ing.nombre}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setItem(i, { ingredientId: v || undefined })}
+              placeholder="— sin vincular —"
+              options={[
+                { value: "", label: "— sin vincular —" },
+                ...inventario.map((ing) => ({ value: ing.id, label: ing.nombre })),
+              ]}
+            />
             <button
               type="button"
               onClick={() => setItems((prev) => prev.filter((_, idx) => idx !== i))}
@@ -230,19 +241,17 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
         <span style={numeric}>Subtotal {formatMoney(subtotal)}</span>
         <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
           ITBIS
-          <input
-            type="number"
+          <NumberInput
             value={itbis}
-            onChange={(e) => setItbis(Number(e.target.value))}
+            onChange={setItbis}
             style={{ ...inputStyle, width: 90, fontSize: 13, ...numeric }}
           />
         </label>
         <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
           Total
-          <input
-            type="number"
+          <NumberInput
             value={total}
-            onChange={(e) => setTotalManual(e.target.value === "" ? null : Number(e.target.value))}
+            onChange={setTotalManual}
             style={{
               ...inputStyle,
               width: 110,

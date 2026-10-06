@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { BorradorInventoryIngredient, PieceUnit, Unit, UnitCategory } from "@/lib/types";
 import { colors, font, numeric, radius } from "@/lib/tokens";
-import { buttonStyle, inputStyle } from "./ui";
+import { buttonStyle, inputStyle, NumberInput, Select } from "./ui";
 
 const PIEZAS: PieceUnit[] = ["unidad", "docena", "diente", "atado", "lata", "paquete", "saco", "caja"];
 
@@ -72,61 +72,58 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
         <label style={{ fontSize: 12, color: colors.textMuted }}>
           Categoría
-          <select value={categoria} onChange={(e) => setCategoria(e.target.value as UnitCategory)} style={inputStyle}>
-            <option value="peso">peso</option>
-            <option value="volumen">volumen</option>
-            <option value="pieza">pieza</option>
-          </select>
+          <Select
+            value={categoria}
+            onChange={(v) => setCategoria(v as UnitCategory)}
+            options={[
+              { value: "peso", label: "peso" },
+              { value: "volumen", label: "volumen" },
+              { value: "pieza", label: "pieza" },
+            ]}
+            style={{ marginTop: 4 }}
+          />
         </label>
         <label style={{ fontSize: 12, color: colors.textMuted }}>
           Unidad de compra
-          <select value={unidadCompra} onChange={(e) => setUnidadCompra(e.target.value as Unit)} style={inputStyle}>
-            <optgroup label="Peso">
-              <option value="g">g</option>
-              <option value="kg">kg</option>
-              <option value="lb">lb</option>
-              <option value="oz">oz</option>
-            </optgroup>
-            <optgroup label="Volumen">
-              <option value="ml">ml</option>
-              <option value="L">L</option>
-              <option value="taza">taza</option>
-              <option value="galon">galón</option>
-            </optgroup>
-            <optgroup label="Pieza">
-              {PIEZAS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+          <Select
+            value={unidadCompra}
+            onChange={(v) => setUnidadCompra(v as Unit)}
+            options={[
+              { value: "g", label: "g", group: "Peso" },
+              { value: "kg", label: "kg", group: "Peso" },
+              { value: "lb", label: "lb", group: "Peso" },
+              { value: "oz", label: "oz", group: "Peso" },
+              { value: "ml", label: "ml", group: "Volumen" },
+              { value: "L", label: "L", group: "Volumen" },
+              { value: "taza", label: "taza", group: "Volumen" },
+              { value: "galon", label: "galón", group: "Volumen" },
+              ...PIEZAS.map((p) => ({ value: p, label: p, group: "Pieza" })),
+            ]}
+            style={{ marginTop: 4 }}
+          />
         </label>
         <label style={{ fontSize: 12, color: colors.textMuted }}>
           Precio / unidad
-          <input
-            type="number"
+          <NumberInput
             value={precioCompra}
-            onChange={(e) => setPrecioCompra(Number(e.target.value))}
+            onChange={setPrecioCompra}
             style={{ ...inputStyle, ...numeric }}
           />
         </label>
         <label style={{ fontSize: 12, color: colors.textMuted, display: "flex", flexDirection: "column", gap: 4 }}>
           Stock actual
-          <input
-            type="number"
+          <NumberInput
             value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
+            onChange={setStock}
             style={{ ...inputStyle, ...numeric }}
           />
           <span style={{ fontSize: 10.5, color: colors.textFaint }}>Cuánto hay ahora mismo en el almacén.</span>
         </label>
         <label style={{ fontSize: 12, color: colors.textMuted, display: "flex", flexDirection: "column", gap: 4 }}>
           Stock mínimo
-          <input
-            type="number"
+          <NumberInput
             value={stockMinimo}
-            onChange={(e) => setStockMinimo(Number(e.target.value))}
+            onChange={setStockMinimo}
             style={{ ...inputStyle, ...numeric }}
           />
           <span style={{ fontSize: 10.5, color: colors.textFaint }}>
@@ -148,26 +145,29 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
       {conEquivalencia && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontSize: 13, color: colors.textMuted }}>1</span>
-          <select value={unidadPieza} onChange={(e) => setUnidadPieza(e.target.value as PieceUnit)} style={{ ...inputStyle, width: "auto" }}>
-            {PIEZAS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={unidadPieza}
+            onChange={(v) => setUnidadPieza(v as PieceUnit)}
+            options={PIEZAS.map((p) => ({ value: p, label: p }))}
+            style={{ width: 120 }}
+          />
           <span style={{ fontSize: 13, color: colors.textMuted }}>=</span>
-          <input
-            type="number"
+          <NumberInput
             value={equivCantidad}
-            onChange={(e) => setEquivCantidad(Number(e.target.value))}
+            onChange={setEquivCantidad}
             style={{ ...inputStyle, width: 90, ...numeric }}
           />
-          <select value={unidadBase} onChange={(e) => setUnidadBase(e.target.value as "g" | "kg" | "ml" | "L")} style={{ ...inputStyle, width: "auto" }}>
-            <option value="g">g</option>
-            <option value="kg">kg</option>
-            <option value="ml">ml</option>
-            <option value="L">L</option>
-          </select>
+          <Select
+            value={unidadBase}
+            onChange={(v) => setUnidadBase(v as "g" | "kg" | "ml" | "L")}
+            options={[
+              { value: "g", label: "g" },
+              { value: "kg", label: "kg" },
+              { value: "ml", label: "ml" },
+              { value: "L", label: "L" },
+            ]}
+            style={{ width: 90 }}
+          />
         </div>
       )}
 

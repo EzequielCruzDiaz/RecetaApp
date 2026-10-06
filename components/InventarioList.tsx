@@ -2,7 +2,7 @@
 
 import type { InventoryIngredient, UnitCategory } from "@/lib/types";
 import { colors, font, numeric, radius } from "@/lib/tokens";
-import { Badge, Money, formatMoney } from "./ui";
+import { Badge, Money, NumberInput, formatMoney } from "./ui";
 
 interface InventarioListProps {
   inventario: InventoryIngredient[];
@@ -80,10 +80,9 @@ export function InventarioList({ inventario, onUpdate, onRemove }: InventarioLis
             <label style={{ textAlign: "right", flexShrink: 0 }}>
               <div style={{ fontSize: 11, color: colors.textFaint }}>Stock actual</div>
               <div>
-                <input
-                  type="number"
+                <NumberInput
                   value={ing.stock}
-                  onChange={(e) => onUpdate(ing.id, { stock: Number(e.target.value) })}
+                  onChange={(stock) => onUpdate(ing.id, { stock })}
                   style={{ ...miniInput, color: tint }}
                 />{" "}
                 <span style={{ fontSize: 11, fontWeight: 500, color: colors.textMuted }}>{ing.unidadCompra}</span>
@@ -99,10 +98,9 @@ export function InventarioList({ inventario, onUpdate, onRemove }: InventarioLis
               }}
             >
               <div style={{ fontSize: 11, color: colors.textFaint }}>Mínimo requerido</div>
-              <input
-                type="number"
+              <NumberInput
                 value={ing.stockMinimo}
-                onChange={(e) => onUpdate(ing.id, { stockMinimo: Number(e.target.value) })}
+                onChange={(stockMinimo) => onUpdate(ing.id, { stockMinimo })}
                 style={{ ...miniInput, fontSize: 14, fontWeight: 600, color: colors.textMuted, width: 50 }}
               />
             </label>
