@@ -139,7 +139,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ítems — qué compraste</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ítems</span>
 
         <div
           style={{
@@ -157,8 +157,8 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
           <span style={{ flex: "2 1 160px" }}>Producto</span>
           <span style={{ flex: "1 1 72px" }}>Cant.</span>
           <span style={{ flex: "1 1 84px" }}>Unidad</span>
-          <span style={{ flex: "1 1 90px" }}>Precio c/u</span>
-          <span style={{ flex: "1.4 1 150px" }}>Vincular a inventario</span>
+          <span style={{ flex: "1 1 90px" }}>Precio</span>
+          <span style={{ flex: "1.4 1 150px" }}>Vincular</span>
           <span style={{ flexShrink: 0, width: 13 }} />
         </div>
 
