@@ -100,14 +100,19 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
         <p style={{ fontSize: 12, color: colors.textMuted, margin: "4px 0 0" }}>
           {preset
             ? "Datos precargados por OCR (borde ámbar) — revisá y corregí antes de guardar."
-            : "O cargala a mano: proveedor, fecha e ítems comprados."}
+            : "O cargala a mano: quién te vendió (Proveedor) y qué compraste (Ítems)."}
         </p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
         <label style={{ fontSize: 11, color: colors.textMuted }}>
           Proveedor
-          <input value={proveedor} onChange={(e) => setProveedor(e.target.value)} style={ocrFieldStyle} />
+          <input
+            value={proveedor}
+            onChange={(e) => setProveedor(e.target.value)}
+            placeholder="Ej. Colmado El Buen Precio"
+            style={ocrFieldStyle}
+          />
         </label>
         <label style={{ fontSize: 11, color: colors.textMuted }}>
           Fecha
@@ -134,7 +139,29 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ítems</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ítems — qué compraste</span>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            padding: "0 8px",
+            fontSize: 10.5,
+            fontWeight: 600,
+            color: colors.textFaint,
+            textTransform: "uppercase",
+            letterSpacing: 0.3,
+          }}
+        >
+          <span style={{ flex: "2 1 160px" }}>Producto</span>
+          <span style={{ flex: "1 1 72px" }}>Cant.</span>
+          <span style={{ flex: "1 1 84px" }}>Unidad</span>
+          <span style={{ flex: "1 1 90px" }}>Precio c/u</span>
+          <span style={{ flex: "1.4 1 150px" }}>Vincular a inventario</span>
+          <span style={{ flexShrink: 0, width: 13 }} />
+        </div>
+
         {items.map((it, i) => {
           const deOcr = Boolean(preset) && i < (preset?.items?.length ?? 0);
           return (
@@ -152,7 +179,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
             }}
           >
             <input
-              placeholder="Descripción"
+              placeholder="Ej. Mantequilla en barra"
               value={it.nombre}
               onChange={(e) => setItem(i, { nombre: e.target.value })}
               style={{ ...inputStyle, fontSize: 13, flex: "2 1 160px" }}
