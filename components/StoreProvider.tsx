@@ -39,6 +39,7 @@ interface Store extends StoreShape {
   addReceta: (r: Receta) => void;
   removeReceta: (id: string) => void;
   addFactura: (b: BorradorFactura) => void;
+  removeFactura: (id: string) => void;
   updateNombreNegocio: (nombre: string) => void;
 }
 
@@ -156,6 +157,20 @@ function LocalStore({ children }: { children: React.ReactNode }) {
     writeSnapshot({ ...memo, facturas: [factura, ...memo.facturas], inventario });
   }, []);
 
+  const removeFactura = useCallback((id: string) => {
+    const factura = memo.facturas.find((f) => f.id === id);
+    if (!factura) return;
+    const inventario = factura.aplicadaAlInventario
+      ? memo.inventario.map((ing) => {
+          const aporte = factura.items
+            .filter((it) => it.ingredientId === ing.id)
+            .reduce((acc, it) => acc + it.cantidad, 0);
+          return aporte ? { ...ing, stock: ing.stock - aporte } : ing;
+        })
+      : memo.inventario;
+    writeSnapshot({ ...memo, facturas: memo.facturas.filter((f) => f.id !== id), inventario });
+  }, []);
+
   const updateNombreNegocio = useCallback((nombre: string) => {
     writeSnapshot({ ...memo, config: { nombreNegocio: nombre } });
   }, []);
@@ -173,6 +188,7 @@ function LocalStore({ children }: { children: React.ReactNode }) {
       addReceta,
       removeReceta,
       addFactura,
+      removeFactura,
       updateNombreNegocio,
     }),
     [
@@ -183,6 +199,7 @@ function LocalStore({ children }: { children: React.ReactNode }) {
       addReceta,
       removeReceta,
       addFactura,
+      removeFactura,
       updateNombreNegocio,
     ],
   );
@@ -252,6 +269,7 @@ function SupabaseStore({ children }: { children: React.ReactNode }) {
       addReceta: (r) => void run(() => repo.guardarReceta(r)),
       removeReceta: (id) => void run(() => repo.borrarReceta(id)),
       addFactura: (b) => void run(() => repo.crearFactura(b)),
+      removeFactura: (id) => void run(() => repo.borrarFactura(id)),
       updateNombreNegocio: (nombre) => void run(() => repo.actualizarConfig({ nombreNegocio: nombre })),
     }),
     [state, cargando, error, recargar, run],

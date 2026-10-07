@@ -131,6 +131,22 @@ begin
   return v_invoice_id;
 end $$;
 
+create or replace function public.borrar_factura(p_id uuid) returns void
+language plpgsql
+security invoker
+as $$
+begin
+  update public.inventory_ingredients ing
+     set stock = ing.stock - coalesce(it.cantidad, 0)
+    from public.invoice_items it
+    join public.invoices inv on inv.id = it.invoice_id
+   where it.invoice_id = p_id
+     and it.ingredient_id = ing.id
+     and inv.aplicada_al_inventario;
+
+  delete from public.invoices where id = p_id;
+end $$;
+
 create or replace function public.guardar_receta(
   p_id                 uuid,
   p_nombre             text,
@@ -169,4 +185,5 @@ begin
 end $$;
 
 grant execute on function public.crear_factura(text, date, text, text, numeric, numeric, jsonb) to authenticated;
+grant execute on function public.borrar_factura(uuid) to authenticated;
 grant execute on function public.guardar_receta(uuid, text, text, numeric, text, jsonb) to authenticated;

@@ -203,6 +203,10 @@ export async function crearFactura(b: BorradorFactura): Promise<void> {
   if (error) throw error;
 }
 
+export async function borrarFactura(id: string): Promise<void> {
+  const { error } = await getSupabase().rpc("borrar_factura", { p_id: id });
+  if (error) throw error;
+}
 
 export async function fetchConfig(): Promise<AppConfig> {
   const { data, error } = await getSupabase()

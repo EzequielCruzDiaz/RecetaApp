@@ -3,15 +3,24 @@
 import { useState } from "react";
 import { ConfirmarFactura } from "@/components/ConfirmarFactura";
 import { EscanearFactura } from "@/components/EscanearFactura";
-import { Card, Eyebrow, Money, PageTitle } from "@/components/ui";
+import { Card, Eyebrow, Money, PageTitle, ghostButtonStyle } from "@/components/ui";
 import { colors, numeric } from "@/lib/tokens";
 import type { CamposFacturaOCR } from "@/lib/factura-ocr";
+import type { Factura } from "@/lib/types";
 import { useStore } from "@/components/StoreProvider";
 
 export default function FacturasPage() {
-  const { facturas, inventario, addFactura } = useStore();
+  const { facturas, inventario, addFactura, removeFactura } = useStore();
   const [preset, setPreset] = useState<CamposFacturaOCR | undefined>();
   const [formKey, setFormKey] = useState(0);
+
+  function confirmarYBorrar(f: Factura) {
+    const vinculados = f.items.some((it) => it.ingredientId);
+    const mensaje = vinculados
+      ? `¿Borrar la factura de "${f.proveedor}"? También se revierte el stock que sumó.`
+      : `¿Borrar la factura de "${f.proveedor}"?`;
+    if (confirm(mensaje)) removeFactura(f.id);
+  }
 
   return (
     <>
@@ -76,7 +85,7 @@ export default function FacturasPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
                     {f.items.map((it, i) => (
                       <span
                         key={i}
@@ -93,6 +102,13 @@ export default function FacturasPage() {
                         {it.cantidad ? ` · ${it.cantidad}${it.unidad ? ` ${it.unidad}` : ""}` : ""}
                       </span>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => confirmarYBorrar(f)}
+                      style={{ ...ghostButtonStyle, marginLeft: "auto", padding: "4px 10px", fontSize: 11 }}
+                    >
+                      Borrar
+                    </button>
                   </div>
                 </Card>
               );

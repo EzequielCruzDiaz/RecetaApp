@@ -186,6 +186,12 @@ export interface Database {
         };
         Returns: string;
       };
+      borrar_factura: {
+        Args: {
+          p_id: string;
+        };
+        Returns: undefined;
+      };
       guardar_receta: {
         Args: {
           p_id: string;
