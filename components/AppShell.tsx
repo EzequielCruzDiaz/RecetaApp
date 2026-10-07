@@ -50,8 +50,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       className="app-shell"
       style={
         {
-          display: "flex",
-          minHeight: "100vh",
           background: colors.bg,
           color: colors.text,
           fontFamily: font.family,
@@ -59,22 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         } as React.CSSProperties
       }
     >
-      <aside
-        className="app-sidebar"
-        style={{
-          width: 236,
-          flexShrink: 0,
-          background: colors.sidebarBg,
-          padding: "28px 18px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-          position: "sticky",
-          top: 0,
-          height: "100vh",
-          overflow: "hidden",
-        }}
-      >
+      <aside className="app-sidebar" style={{ background: colors.sidebarBg }}>
         <div
           className="app-sidebar-blob"
           style={{
@@ -89,10 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           }}
         />
 
-        <div
-          className="app-sidebar-brand"
-          style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 8px 26px", position: "relative" }}
-        >
+        <div className="app-sidebar-brand">
           <div
             style={{
               width: 38,
@@ -126,7 +106,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <nav className="app-nav" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <nav className="app-nav">
           {NAV.map((n) => {
             const active = n.href === "/" ? path === "/" : path.startsWith(n.href);
             return (
@@ -135,14 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 href={n.href}
                 className="app-nav-link"
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "11px 12px",
-                  borderRadius: 10,
-                  fontSize: 14,
                   fontWeight: active ? 700 : 500,
-                  textDecoration: "none",
                   color: active ? colors.sidebarBg : NAV_INACTIVE,
                   background: active ? colors.secondary : "transparent",
                 }}
@@ -165,8 +138,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="app-sidebar-footer" style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>
-          <div style={{ fontSize: 11, color: colors.sidebarMuted, padding: "0 8px 4px" }}>
+        <div className="app-sidebar-footer">
+          <div className="app-sidebar-status" style={{ color: colors.sidebarMuted }}>
             {origen === "supabase" ? "Conectado a Supabase" : "Modo local · sin conexión"}
           </div>
           <InstallButton />
@@ -174,7 +147,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="app-main" style={{ flex: 1, minWidth: 0, padding: "36px 44px 60px" }}>
+      <main className="app-main">
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
           <StoreStatus />
           {children}

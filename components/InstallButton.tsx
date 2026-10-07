@@ -4,15 +4,10 @@ import { useEffect, useState } from "react";
 import { colors } from "@/lib/tokens";
 
 const sidebarButtonStyle: React.CSSProperties = {
-  fontSize: 13,
   fontWeight: 600,
-  padding: "9px 12px",
-  borderRadius: 9,
   border: `1.5px solid ${colors.secondary}`,
   color: colors.secondary,
   background: "transparent",
-  cursor: "pointer",
-  fontFamily: "inherit",
 };
 
 interface BeforeInstallPromptEvent extends Event {
@@ -43,7 +38,8 @@ export function InstallButton() {
   return (
     <button
       type="button"
-      style={{ ...sidebarButtonStyle, width: "100%" }}
+      className="app-sidebar-action"
+      style={sidebarButtonStyle}
       onClick={async () => {
         await deferred.prompt();
         await deferred.userChoice;
