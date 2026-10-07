@@ -48,24 +48,55 @@ export default function FacturasPage() {
         {facturas.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Registradas</span>
-            {facturas.map((f) => (
-              <Card key={f.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: colors.text }}>{f.proveedor}</div>
-                  <div style={{ fontSize: 12, color: colors.textMuted }}>
-                    {f.fecha}
-                    {f.ncf ? ` · NCF ${f.ncf}` : ""} · {f.items.length}{" "}
-                    {f.items.length === 1 ? "ítem" : "ítems"}
+            {facturas.map((f) => {
+              const vinculados = f.items.filter((it) => it.ingredientId).length;
+              return (
+                <Card key={f.id} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: colors.text }}>{f.proveedor}</div>
+                      <div style={{ fontSize: 12, color: colors.textMuted }}>
+                        {f.fecha}
+                        {f.ncf ? ` · NCF ${f.ncf}` : ""}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={numeric}>
+                        <Money value={f.total} />
+                      </div>
+                      {vinculados > 0 ? (
+                        <div style={{ fontSize: 11, color: colors.positive }}>
+                          {vinculados === f.items.length
+                            ? "Aplicada al inventario"
+                            : `${vinculados}/${f.items.length} ítems aplicados al inventario`}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 11, color: colors.accent }}>Sin ítems vinculados — no tocó el stock</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={numeric}>
-                    <Money value={f.total} />
+
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {f.items.map((it, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: 11,
+                          padding: "3px 9px",
+                          borderRadius: 999,
+                          background: it.ingredientId ? `${colors.positive}1A` : `${colors.textFaint}1A`,
+                          color: it.ingredientId ? colors.positive : colors.textMuted,
+                        }}
+                        title={it.ingredientId ? "Sumó al stock" : "No vinculado — no sumó al stock"}
+                      >
+                        {it.nombre}
+                        {it.cantidad ? ` · ${it.cantidad}${it.unidad ? ` ${it.unidad}` : ""}` : ""}
+                      </span>
+                    ))}
                   </div>
-                  <div style={{ fontSize: 11, color: colors.positive }}>Aplicada al inventario</div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
