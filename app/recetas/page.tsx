@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { EscaladorReceta } from "@/components/EscaladorReceta";
 import { RecetaCard } from "@/components/RecetaCard";
-import { RecipeForm } from "@/components/RecipeForm";
+import { RecetaEditor } from "@/components/RecetaEditor";
 import { EmptyState, PageTitle, ghostButtonStyle } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
 
@@ -74,7 +74,7 @@ export default function RecetasPage() {
         )}
 
         <div id="form-receta">
-          <RecipeForm inventario={inventario} onGuardar={addReceta} />
+          <RecetaEditor inventario={inventario} onGuardar={addReceta} />
         </div>
       </div>
     </>

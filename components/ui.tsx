@@ -2,10 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { colors, font, numeric, radius } from "@/lib/tokens";
+import { formatMoney } from "@/lib/format";
 
-export function formatMoney(n: number): string {
-  return `RD$${n.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+export { formatMoney };
 
 export function Money({ value, alert }: { value: number; alert?: boolean }) {
   return (
