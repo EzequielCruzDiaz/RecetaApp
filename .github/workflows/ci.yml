@@ -1,0 +1,46 @@
+name: CI
+
+# Corre en cada PR y en pushes a las ramas principales.
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+# Si empujás dos veces seguidas al mismo PR, cancela la corrida vieja.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Traer el código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar tipos de rutas
+        # `LayoutProps`/`PageProps` son generados por Next (typed routes) en
+        # .next/types; no están en git. Sin este paso, tsc no los encuentra
+        # en una máquina limpia (sí funciona en local si ya corriste dev/build).
+        run: npx next typegen
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Tests
+        run: npm test --if-present

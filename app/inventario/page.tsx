@@ -12,11 +12,19 @@ function irAlForm() {
 export default function InventarioPage() {
   const { inventario, addIngrediente, updateIngrediente, removeIngrediente } = useStore();
 
+  function confirmarYQuitar(id: string) {
+    const ing = inventario.find((i) => i.id === id);
+    const nombre = ing?.nombre ?? "este ingrediente";
+    if (confirm(`¿Quitar "${nombre}" del inventario? Esta acción no se puede deshacer.`)) {
+      removeIngrediente(id);
+    }
+  }
+
   return (
     <>
       <PageTitle
         title="Inventario"
-        subtitle="Ingredientes, precio de compra y stock. El borde rojo marca stock bajo el mínimo."
+        subtitle='Ingredientes, precio de compra y stock. Cuando el stock actual llega al mínimo, se marca "Stock bajo".'
       />
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {inventario.length === 0 ? (
@@ -30,7 +38,7 @@ export default function InventarioPage() {
           <InventarioList
             inventario={inventario}
             onUpdate={updateIngrediente}
-            onRemove={removeIngrediente}
+            onRemove={confirmarYQuitar}
           />
         )}
         <div id="form-inventario">

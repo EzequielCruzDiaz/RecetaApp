@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { InventoryIngredient, Receta } from "@/lib/types";
 import { computeIngredientCost } from "@/lib/conversion";
 import { colors, numeric } from "@/lib/tokens";
-import { Card, Money, formatMoney, inputStyle } from "./ui";
+import { Card, Money, NumberInput, formatMoney, inputStyle } from "./ui";
 
 interface EscaladorRecetaProps {
   receta: Receta;
@@ -55,11 +55,10 @@ export function EscaladorReceta({ receta, inventario }: EscaladorRecetaProps) {
 
       <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: colors.textMuted }}>
         Quiero producir
-        <input
-          type="number"
+        <NumberInput
           min={0}
           value={deseada}
-          onChange={(e) => setDeseada(Number(e.target.value))}
+          onChange={setDeseada}
           style={{ ...inputStyle, width: 90 }}
         />
         {rinde}

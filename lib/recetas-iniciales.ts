@@ -1,10 +1,6 @@
-// SOLO desarrollo local. La app se entrega VACÍA a cada cliente: sin recetas
-// ni ingredientes precargados. La carga inicial de datos de un cliente nuevo
-// es un paso operativo manual al momento de la venta, no una feature.
-//
-// StoreProvider usa estos datos únicamente cuando NODE_ENV === "development".
-
 import type { InventoryIngredient, Receta } from "./types";
+
+export const NOMBRE_NEGOCIO_DEMO = "Cocina Doña Ana";
 
 export const INVENTARIO_DEMO: InventoryIngredient[] = [
   {

@@ -1,4 +1,5 @@
 import type {
+  AppConfig,
   BorradorFactura,
   BorradorInventoryIngredient,
   Factura,
@@ -18,7 +19,6 @@ type RecetaIngRow = Database["public"]["Tables"]["recipe_ingredients"]["Row"];
 type FacturaRow = Database["public"]["Tables"]["invoices"]["Row"];
 type FacturaItemRow = Database["public"]["Tables"]["invoice_items"]["Row"];
 
-// ── Mappers row → tipo de dominio ─────────────────────────────
 
 function aIngrediente(r: IngRow): InventoryIngredient {
   return {
@@ -80,7 +80,6 @@ function aFactura(r: FacturaRow & { invoice_items: FacturaItemRow[] }): Factura 
   };
 }
 
-// ── Inventario ───────────────────────────────────────────────
 
 export async function fetchInventario(): Promise<InventoryIngredient[]> {
   const { data, error } = await getSupabase()
@@ -138,7 +137,6 @@ export async function borrarIngrediente(id: string): Promise<void> {
   if (error) throw error;
 }
 
-// ── Recetas ──────────────────────────────────────────────────
 
 export async function fetchRecetas(): Promise<Receta[]> {
   const { data, error } = await getSupabase()
@@ -174,7 +172,6 @@ export async function borrarReceta(id: string): Promise<void> {
   if (error) throw error;
 }
 
-// ── Facturas ─────────────────────────────────────────────────
 
 export async function fetchFacturas(): Promise<Factura[]> {
   const { data, error } = await getSupabase()
@@ -203,5 +200,28 @@ export async function crearFactura(b: BorradorFactura): Promise<void> {
       ingredient_id: it.ingredientId ?? null,
     })) as unknown as Json,
   });
+  if (error) throw error;
+}
+
+export async function borrarFactura(id: string): Promise<void> {
+  const { error } = await getSupabase().rpc("borrar_factura", { p_id: id });
+  if (error) throw error;
+}
+
+export async function fetchConfig(): Promise<AppConfig> {
+  const { data, error } = await getSupabase()
+    .from("app_settings")
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw error;
+  return { nombreNegocio: data?.nombre_negocio ?? "" };
+}
+
+export async function actualizarConfig(patch: Partial<AppConfig>): Promise<void> {
+  const row: Database["public"]["Tables"]["app_settings"]["Update"] = {};
+  if (patch.nombreNegocio !== undefined) row.nombre_negocio = patch.nombreNegocio;
+
+  const { error } = await getSupabase().from("app_settings").update(row).eq("id", 1);
   if (error) throw error;
 }

@@ -9,10 +9,11 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { INVENTARIO_DEMO, RECETAS_DEMO } from "@/lib/recetas-iniciales";
+import { INVENTARIO_DEMO, NOMBRE_NEGOCIO_DEMO, RECETAS_DEMO } from "@/lib/recetas-iniciales";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import * as repo from "@/lib/supabase/repo";
 import type {
+  AppConfig,
   BorradorFactura,
   BorradorInventoryIngredient,
   Factura,
@@ -24,6 +25,7 @@ interface StoreShape {
   inventario: InventoryIngredient[];
   recetas: Receta[];
   facturas: Factura[];
+  config: AppConfig;
 }
 
 interface Store extends StoreShape {
@@ -37,6 +39,8 @@ interface Store extends StoreShape {
   addReceta: (r: Receta) => void;
   removeReceta: (id: string) => void;
   addFactura: (b: BorradorFactura) => void;
+  removeFactura: (id: string) => void;
+  updateNombreNegocio: (nombre: string) => void;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -55,14 +59,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Backend local (localStorage) ─────────────────────────────
-
-const KEY = "recetapp:v1";
+const KEY = "cuadre:v1";
 
 const SEED: StoreShape =
   process.env.NODE_ENV === "development"
-    ? { inventario: INVENTARIO_DEMO, recetas: RECETAS_DEMO, facturas: [] }
-    : { inventario: [], recetas: [], facturas: [] };
+    ? {
+        inventario: INVENTARIO_DEMO,
+        recetas: RECETAS_DEMO,
+        facturas: [],
+        config: { nombreNegocio: NOMBRE_NEGOCIO_DEMO },
+      }
+    : { inventario: [], recetas: [], facturas: [], config: { nombreNegocio: "" } };
 
 let memo: StoreShape = SEED;
 let loaded = false;
@@ -73,10 +80,16 @@ function readSnapshot(): StoreShape {
     loaded = true;
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) memo = JSON.parse(raw) as StoreShape;
-    } catch {
-      /* localStorage no disponible */
-    }
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<StoreShape>;
+        memo = {
+          inventario: parsed.inventario ?? [],
+          recetas: parsed.recetas ?? [],
+          facturas: parsed.facturas ?? [],
+          config: parsed.config ?? { nombreNegocio: "" },
+        };
+      }
+    } catch {}
   }
   return memo;
 }
@@ -85,9 +98,7 @@ function writeSnapshot(next: StoreShape) {
   memo = next;
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    /* localStorage no disponible */
-  }
+  } catch {}
   listeners.forEach((l) => l());
 }
 
@@ -146,6 +157,24 @@ function LocalStore({ children }: { children: React.ReactNode }) {
     writeSnapshot({ ...memo, facturas: [factura, ...memo.facturas], inventario });
   }, []);
 
+  const removeFactura = useCallback((id: string) => {
+    const factura = memo.facturas.find((f) => f.id === id);
+    if (!factura) return;
+    const inventario = factura.aplicadaAlInventario
+      ? memo.inventario.map((ing) => {
+          const aporte = factura.items
+            .filter((it) => it.ingredientId === ing.id)
+            .reduce((acc, it) => acc + it.cantidad, 0);
+          return aporte ? { ...ing, stock: ing.stock - aporte } : ing;
+        })
+      : memo.inventario;
+    writeSnapshot({ ...memo, facturas: memo.facturas.filter((f) => f.id !== id), inventario });
+  }, []);
+
+  const updateNombreNegocio = useCallback((nombre: string) => {
+    writeSnapshot({ ...memo, config: { nombreNegocio: nombre } });
+  }, []);
+
   const value = useMemo<Store>(
     () => ({
       ...state,
@@ -159,29 +188,44 @@ function LocalStore({ children }: { children: React.ReactNode }) {
       addReceta,
       removeReceta,
       addFactura,
+      removeFactura,
+      updateNombreNegocio,
     }),
-    [state, addIngrediente, updateIngrediente, removeIngrediente, addReceta, removeReceta, addFactura],
+    [
+      state,
+      addIngrediente,
+      updateIngrediente,
+      removeIngrediente,
+      addReceta,
+      removeReceta,
+      addFactura,
+      removeFactura,
+      updateNombreNegocio,
+    ],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-// ── Backend Supabase ─────────────────────────────────────────
-
 function SupabaseStore({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<StoreShape>({ inventario: [], recetas: [], facturas: [] });
+  const [state, setState] = useState<StoreShape>({
+    inventario: [],
+    recetas: [],
+    facturas: [],
+    config: { nombreNegocio: "" },
+  });
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // No toca estado de forma síncrona: es seguro llamarla desde un efecto.
   const cargarDatos = useCallback(async () => {
     try {
-      const [inventario, recetas, facturas] = await Promise.all([
+      const [inventario, recetas, facturas, config] = await Promise.all([
         repo.fetchInventario(),
         repo.fetchRecetas(),
         repo.fetchFacturas(),
+        repo.fetchConfig(),
       ]);
-      setState({ inventario, recetas, facturas });
+      setState({ inventario, recetas, facturas, config });
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo cargar desde Supabase");
@@ -191,8 +235,6 @@ function SupabaseStore({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Carga inicial desde un store externo (Supabase). El setState ocurre
-    // recién después del await; la regla no distingue ese caso.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void cargarDatos();
   }, [cargarDatos]);
@@ -227,6 +269,8 @@ function SupabaseStore({ children }: { children: React.ReactNode }) {
       addReceta: (r) => void run(() => repo.guardarReceta(r)),
       removeReceta: (id) => void run(() => repo.borrarReceta(id)),
       addFactura: (b) => void run(() => repo.crearFactura(b)),
+      removeFactura: (id) => void run(() => repo.borrarFactura(id)),
+      updateNombreNegocio: (nombre) => void run(() => repo.actualizarConfig({ nombreNegocio: nombre })),
     }),
     [state, cargando, error, recargar, run],
   );

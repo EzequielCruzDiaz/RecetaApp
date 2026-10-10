@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { EscaladorReceta } from "@/components/EscaladorReceta";
 import { RecetaCard } from "@/components/RecetaCard";
-import { RecipeForm } from "@/components/RecipeForm";
+import { RecetaEditor } from "@/components/RecetaEditor";
 import { EmptyState, PageTitle, ghostButtonStyle } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
 
@@ -17,6 +17,12 @@ export default function RecetasPage() {
 
   const escalar = recetas.find((r) => r.id === escalarId) ?? null;
   const vacio = recetas.length === 0;
+
+  function confirmarYBorrar(nombre: string, id: string) {
+    if (confirm(`¿Borrar la receta "${nombre}"? Esta acción no se puede deshacer.`)) {
+      removeReceta(id);
+    }
+  }
 
   return (
     <>
@@ -37,22 +43,26 @@ export default function RecetasPage() {
         ) : (
           <>
             {escalar && <EscaladorReceta receta={escalar} inventario={inventario} />}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 14 }}>
               {recetas.map((receta) => (
                 <RecetaCard
                   key={receta.id}
                   receta={receta}
                   inventario={inventario}
                   accion={
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 6, width: "100%" }}>
                       <button
                         type="button"
                         onClick={() => setEscalarId(receta.id === escalarId ? null : receta.id)}
-                        style={ghostButtonStyle}
+                        style={{ ...ghostButtonStyle, flex: 1, textAlign: "center" }}
                       >
                         {receta.id === escalarId ? "Cerrar escalador" : "Escalar"}
                       </button>
-                      <button type="button" onClick={() => removeReceta(receta.id)} style={ghostButtonStyle}>
+                      <button
+                        type="button"
+                        onClick={() => confirmarYBorrar(receta.nombre, receta.id)}
+                        style={ghostButtonStyle}
+                      >
                         Borrar
                       </button>
                     </div>
@@ -64,7 +74,7 @@ export default function RecetasPage() {
         )}
 
         <div id="form-receta">
-          <RecipeForm inventario={inventario} onGuardar={addReceta} />
+          <RecetaEditor inventario={inventario} onGuardar={addReceta} />
         </div>
       </div>
     </>

@@ -68,3 +68,7 @@ export interface Factura {
 export type BorradorInventoryIngredient = Omit<InventoryIngredient, "id">;
 export type BorradorReceta = Omit<Receta, "id">;
 export type BorradorFactura = Omit<Factura, "id" | "aplicadaAlInventario">;
+
+export interface AppConfig {
+  nombreNegocio: string;
+}
