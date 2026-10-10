@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeIngredientCost, computeRecipeCost, convertVolume, convertWeight, scaleRecipe } from "./conversion";
+import { computeIngredientCost, computeRecipeCost, convertirAUnidadCompra, convertVolume, convertWeight, scaleRecipe } from "./conversion";
 import type { InventoryIngredient, Receta } from "./types";
 
 function ingrediente(overrides: Partial<InventoryIngredient> = {}): InventoryIngredient {
@@ -122,5 +122,23 @@ describe("scaleRecipe", () => {
       ingredientes: [{ ingredientId: "ing-1", cantidad: null, unidad: null, alGusto: true }],
     });
     expect(scaleRecipe(r, 8).ingredientes[0].cantidad).toBeNull();
+  });
+});
+
+describe("convertirAUnidadCompra", () => {
+  it("misma unidad: no cambia", () => {
+    expect(convertirAUnidadCompra(ingrediente(), 3, "kg")).toBe(3);
+  });
+
+  it("g → kg", () => {
+    expect(convertirAUnidadCompra(ingrediente(), 500, "g")).toBeCloseTo(0.5);
+  });
+
+  it("no depende del precio (un ingrediente con precio 0 igual convierte)", () => {
+    expect(convertirAUnidadCompra(ingrediente({ precioCompra: 0 }), 2, "lb")).toBeCloseTo(0.907, 3);
+  });
+
+  it("lanza si no hay conversión posible", () => {
+    expect(() => convertirAUnidadCompra(ingrediente(), 1, "taza")).toThrow(/equivalencia/);
   });
 });

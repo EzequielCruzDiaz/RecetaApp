@@ -19,7 +19,10 @@ const RE_FECHA_DMY = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b/;
 const RE_FECHA_ISO = /\b(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})\b/;
 
 const SALTAR_ITEM =
-  /(sub\s*-?\s*total|total|itbis|impuesto|descuento|r\.?n\.?c|n\.?c\.?f|fecha|cambio|efectivo|tarjeta|balance|gracias|caj[ae]|vendedor)/i;
+  /(sub\s*-?\s*total|total|itbis|impuesto|descuento|r\.?n\.?c|n\.?c\.?f|fecha|cambio|efectivo|tarjeta|balance|gracias|caj[ae]|vendedor|\bcalle\b|\bc\/|\bav(enida)?\b|\btel[eé]?f?(ono)?\b|whatsapp|\bsector\b|\bkm\b|direcci[oó]n|cliente|c[eé]dula|art[ií]culos)/i;
+
+/** Líneas con "total" que no son el total de la factura. */
+const NO_ES_TOTAL = /sub\s*-?\s*total|itbis|impuesto|art[ií]culos|[ií]tems|unidades|cantidad|descuento/i;
 
 export function parseMonto(raw: string): number | undefined {
   let s = raw.replace(/[^\d.,-]/g, "").trim();
@@ -32,7 +35,9 @@ export function parseMonto(raw: string): number | undefined {
     if (lastComma > lastDot) s = s.replace(/\./g, "").replace(",", ".");
     else s = s.replace(/,/g, "");
   } else if (lastComma !== -1) {
-    s = /,\d{2}$/.test(s) ? s.replace(",", ".") : s.replace(/,/g, "");
+    // Una sola coma seguida de 1 o 2 dígitos es decimal ("12,5", "350,00");
+    // con 3 dígitos o varias comas es separador de miles ("1,250").
+    s = /^-?\d+,\d{1,2}$/.test(s) ? s.replace(",", ".") : s.replace(/,/g, "");
   }
 
   const n = Number(s);
@@ -74,7 +79,7 @@ export function parseFacturaTexto(texto: string): CamposFacturaOCR {
 
   let total: number | undefined;
   for (const l of lineas) {
-    if (!/\btotal\b/i.test(l) || /sub\s*-?\s*total/i.test(l)) continue;
+    if (!/\btotal\b/i.test(l) || NO_ES_TOTAL.test(l)) continue;
     const v = parseMonto(l.match(/([\d.,]+)\s*$/)?.[1] ?? "");
     if (v == null) continue;
     if (/total\s+(a\s+pagar|general|factura|neto)|monto\s+total/i.test(l)) {
@@ -93,18 +98,44 @@ export function parseFacturaTexto(texto: string): CamposFacturaOCR {
   if (proveedor) campos.proveedor = proveedor;
 
   for (const l of lineas) {
-    if (l.length < 5 || SALTAR_ITEM.test(l)) continue;
-    const m = l.match(/^(.*?[a-záéíóúñ].*?)\s+(\d[\d.,]*)\s*$/i);
+    if (l.length < 5 || l === proveedor || SALTAR_ITEM.test(l)) continue;
+    const m = l.match(/^(.*?[a-záéíóúñ].*?)((?:\s+\d[\d.,]*){1,3})\s*$/i);
     if (!m) continue;
-    const precio = parseMonto(m[2]);
-    if (precio == null || precio <= 0) continue;
+    const tokens = m[2].trim().split(/\s+/);
+    const nums = tokens.map(parseMonto);
+    if (nums.some((n) => n == null || n <= 0)) continue;
+    const [a, b, c] = nums as number[];
 
     const conCantidad = m[1].match(/^(\d+(?:[.,]\d+)?)\s*(?:x|und|u|lb|kg|pcs?)?\s+(.*)$/i);
-    const cantidad = conCantidad ? parseMonto(conCantidad[1]) ?? 1 : 1;
+    let cantidad = conCantidad ? parseMonto(conCantidad[1]) ?? 1 : 1;
     const nombre = (conCantidad ? conCantidad[2] : m[1]).trim();
-    if (nombre.length < 2) continue;
+    if (nombre.length < 2 || !/[a-záéíóúñ]/i.test(nombre)) continue;
 
-    campos.items.push({ nombre, cantidad, unidad: null, precioUnitario: precio });
+    // La última cifra de la línea es el importe (cantidad × precio); antes
+    // pueden venir la cantidad, el precio unitario, o los dos.
+    let precio: number;
+    if (c != null) {
+      cantidad = a;
+      precio = b;
+    } else if (b != null) {
+      if (!conCantidad && /^\d+$/.test(tokens[0])) {
+        cantidad = a; // "Arroz 5 350.00"
+        precio = b / a;
+      } else {
+        precio = a; // "Arroz 70.00 350.00"
+        if (!conCantidad) cantidad = Math.round((b / a) * 1000) / 1000;
+      }
+    } else {
+      precio = a / cantidad; // "5 x Arroz 350.00"
+    }
+    if (!(cantidad > 0) || !(precio > 0)) continue;
+
+    campos.items.push({
+      nombre,
+      cantidad,
+      unidad: null,
+      precioUnitario: Math.round(precio * 100) / 100,
+    });
   }
 
   return campos;

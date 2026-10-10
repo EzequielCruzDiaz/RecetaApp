@@ -41,6 +41,7 @@ export default function FacturasPage() {
         <ConfirmarFactura
           key={formKey}
           inventario={inventario}
+          facturas={facturas}
           preset={preset}
           onConfirmar={(f) => {
             addFactura(f);

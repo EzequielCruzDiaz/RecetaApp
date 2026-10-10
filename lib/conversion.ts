@@ -28,21 +28,25 @@ export function convertVolume(cantidad: number, de: VolumeUnit, a: VolumeUnit): 
   return (cantidad * VOLUME_FACTORS[de]) / VOLUME_FACTORS[a];
 }
 
-export function computeIngredientCost(
+/**
+ * Pasa `cantidad` en `unidad` a la unidad de compra del ingrediente
+ * (la misma en que se lleva el stock y el precio).
+ */
+export function convertirAUnidadCompra(
   ing: InventoryIngredient,
   cantidad: number,
   unidad: Unit
 ): number {
   if (unidad === ing.unidadCompra) {
-    return cantidad * ing.precioCompra;
+    return cantidad;
   }
 
   if (isWeightUnit(unidad) && isWeightUnit(ing.unidadCompra)) {
-    return convertWeight(cantidad, unidad, ing.unidadCompra) * ing.precioCompra;
+    return convertWeight(cantidad, unidad, ing.unidadCompra);
   }
 
   if (isVolumeUnit(unidad) && isVolumeUnit(ing.unidadCompra)) {
-    return convertVolume(cantidad, unidad, ing.unidadCompra) * ing.precioCompra;
+    return convertVolume(cantidad, unidad, ing.unidadCompra);
   }
 
   if (ing.equivalencia) {
@@ -50,23 +54,30 @@ export function computeIngredientCost(
 
     if (unidad === eq.unidadPieza) {
       const cantidadEnBase = cantidad * eq.cantidad;
-      const cantidadEnCompra = isWeightUnit(ing.unidadCompra)
+      return isWeightUnit(ing.unidadCompra)
         ? convertWeight(cantidadEnBase, eq.unidadBase as WeightUnit, ing.unidadCompra)
         : convertVolume(cantidadEnBase, eq.unidadBase as VolumeUnit, ing.unidadCompra as VolumeUnit);
-      return cantidadEnCompra * ing.precioCompra;
     }
 
     if (ing.unidadCompra === eq.unidadPieza && (isWeightUnit(unidad) || isVolumeUnit(unidad))) {
       const cantidadEnBase = isWeightUnit(unidad)
         ? convertWeight(cantidad, unidad, eq.unidadBase as WeightUnit)
         : convertVolume(cantidad, unidad, eq.unidadBase as VolumeUnit);
-      return (cantidadEnBase / eq.cantidad) * ing.precioCompra;
+      return cantidadEnBase / eq.cantidad;
     }
   }
 
   throw new Error(
     `No se puede convertir "${unidad}" a la unidad de compra "${ing.unidadCompra}" para "${ing.nombre}". Falta definir una equivalencia.`
   );
+}
+
+export function computeIngredientCost(
+  ing: InventoryIngredient,
+  cantidad: number,
+  unidad: Unit
+): number {
+  return convertirAUnidadCompra(ing, cantidad, unidad) * ing.precioCompra;
 }
 
 export function computeRecipeCost(

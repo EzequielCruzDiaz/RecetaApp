@@ -9,6 +9,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { aplicarAlStock } from "@/lib/factura";
 import { INVENTARIO_DEMO, NOMBRE_NEGOCIO_DEMO, RECETAS_DEMO } from "@/lib/recetas-iniciales";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import * as repo from "@/lib/supabase/repo";
@@ -148,12 +149,7 @@ function LocalStore({ children }: { children: React.ReactNode }) {
 
   const addFactura = useCallback((b: BorradorFactura) => {
     const factura: Factura = { ...b, id: nuevoId("fac"), aplicadaAlInventario: true };
-    const inventario = memo.inventario.map((ing) => {
-      const aporte = b.items
-        .filter((it) => it.ingredientId === ing.id)
-        .reduce((acc, it) => acc + it.cantidad, 0);
-      return aporte ? { ...ing, stock: ing.stock + aporte } : ing;
-    });
+    const inventario = aplicarAlStock(memo.inventario, b.items, 1);
     writeSnapshot({ ...memo, facturas: [factura, ...memo.facturas], inventario });
   }, []);
 
@@ -161,12 +157,7 @@ function LocalStore({ children }: { children: React.ReactNode }) {
     const factura = memo.facturas.find((f) => f.id === id);
     if (!factura) return;
     const inventario = factura.aplicadaAlInventario
-      ? memo.inventario.map((ing) => {
-          const aporte = factura.items
-            .filter((it) => it.ingredientId === ing.id)
-            .reduce((acc, it) => acc + it.cantidad, 0);
-          return aporte ? { ...ing, stock: ing.stock - aporte } : ing;
-        })
+      ? aplicarAlStock(memo.inventario, factura.items, -1)
       : memo.inventario;
     writeSnapshot({ ...memo, facturas: memo.facturas.filter((f) => f.id !== id), inventario });
   }, []);

@@ -50,8 +50,11 @@ create table if not exists public.invoice_items (
   cantidad        numeric not null default 0,
   unidad          text,
   precio_unitario numeric not null default 0,
-  ingredient_id   uuid references public.inventory_ingredients(id) on delete set null
+  ingredient_id   uuid references public.inventory_ingredients(id) on delete set null,
+  -- Lo que sumó al stock, ya convertido a la unidad de compra del ingrediente.
+  cantidad_stock  numeric
 );
+alter table public.invoice_items add column if not exists cantidad_stock numeric;
 create index if not exists invoice_items_invoice_id_idx
   on public.invoice_items(invoice_id);
 
@@ -111,19 +114,20 @@ begin
   loop
     v_ing := nullif(v_item->>'ingredient_id', '')::uuid;
 
-    insert into public.invoice_items (invoice_id, nombre, cantidad, unidad, precio_unitario, ingredient_id)
+    insert into public.invoice_items (invoice_id, nombre, cantidad, unidad, precio_unitario, ingredient_id, cantidad_stock)
     values (
       v_invoice_id,
       coalesce(v_item->>'nombre', ''),
       coalesce((v_item->>'cantidad')::numeric, 0),
       nullif(v_item->>'unidad', ''),
       coalesce((v_item->>'precio_unitario')::numeric, 0),
-      v_ing
+      v_ing,
+      (v_item->>'cantidad_stock')::numeric
     );
 
     if v_ing is not null then
       update public.inventory_ingredients
-         set stock = stock + coalesce((v_item->>'cantidad')::numeric, 0)
+         set stock = stock + coalesce((v_item->>'cantidad_stock')::numeric, (v_item->>'cantidad')::numeric, 0)
        where id = v_ing;
     end if;
   end loop;
@@ -137,7 +141,7 @@ security invoker
 as $$
 begin
   update public.inventory_ingredients ing
-     set stock = ing.stock - coalesce(it.cantidad, 0)
+     set stock = ing.stock - coalesce(it.cantidad_stock, it.cantidad, 0)
     from public.invoice_items it
     join public.invoices inv on inv.id = it.invoice_id
    where it.invoice_id = p_id
