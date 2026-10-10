@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { EscaladorReceta } from "@/components/EscaladorReceta";
 import { ListaRecetas } from "@/components/ListaRecetas";
-import { FormularioReceta } from "@/components/FormularioReceta";
+import { RecetaEditor } from "@/components/RecetaEditor";
 import { EmptyState, PageTitle, buttonStyle } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
 
@@ -83,7 +83,7 @@ export default function RecetasPage() {
         )}
 
         <div id="form-receta" style={{ scrollMarginTop: 90 }}>
-          <FormularioReceta inventario={inventario} onGuardar={addReceta} />
+          <RecetaEditor inventario={inventario} onGuardar={addReceta} />
         </div>
       </div>
     </>

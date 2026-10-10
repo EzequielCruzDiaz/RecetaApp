@@ -51,7 +51,7 @@ docs/
 components/
   AppShell, StoreProvider, ui        Infra y primitivas visuales
   ServiceWorkerRegister, InstallButton   PWA
-  UnitSelector, FilaIngrediente, FormularioReceta, FichaReceta, EscaladorReceta
+  RecetaEditor, FichaReceta, EscaladorReceta
   ListaRecetas, FormularioInventario, ListaInventario, ConfirmarFactura, ReciboFactura
   PanelResumen, EncabezadoResumen
   EscanearFactura                    OCR de factura (tesseract.js)
