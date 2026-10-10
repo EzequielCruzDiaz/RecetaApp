@@ -1,8 +1,20 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { BorradorFactura, Factura, FacturaItem, InventoryIngredient, Unit } from "@/lib/types";
-import type { CamposFacturaOCR } from "@/lib/factura-ocr";
+import {
+  agregarLectura,
+  aItemFactura,
+  completarEncabezado,
+  cuadraTotal,
+  encabezadoSin,
+  quitarLectura,
+  totalesDe,
+  type CampoEncabezado,
+  type Encabezado,
+  type ItemBorrador,
+  type LecturaFactura,
+} from "@/lib/factura-lectura";
 import {
   hayErrores,
   hoyLocal,
@@ -13,6 +25,7 @@ import {
 } from "@/lib/factura";
 import { UNIT_INFO, unidadesDisponibles } from "@/lib/units";
 import { colors, numeric, radius } from "@/lib/tokens";
+import { EscanearFactura } from "./EscanearFactura";
 import {
   FormHeader,
   MensajeCampo,
@@ -33,7 +46,6 @@ interface ConfirmarFacturaProps {
   inventario: InventoryIngredient[];
   facturas: Factura[];
   onConfirmar: (factura: BorradorFactura) => void;
-  preset?: CamposFacturaOCR;
 }
 
 const soloRnc = (s: string) => s.replace(/[^0-9-]/g, "").slice(0, 13);
@@ -41,7 +53,7 @@ const soloNcf = (s: string) => s.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slic
 
 const UNIDADES_SUELTAS: Unit[] = ["lb", "kg", "L", "unidad", "paquete", "caja", "saco"];
 
-const filaVacia = (): FacturaItem => ({
+const filaVacia = (): ItemBorrador => ({
   nombre: "",
   cantidad: 1,
   unidad: null,
@@ -49,7 +61,7 @@ const filaVacia = (): FacturaItem => ({
   ingredientId: undefined,
 });
 
-function autoVincular(items: FacturaItem[], inventario: InventoryIngredient[]): FacturaItem[] {
+function autoVincular(items: ItemBorrador[], inventario: InventoryIngredient[]): ItemBorrador[] {
   return items.map((it) => (it.ingredientId ? it : { ...it, ingredientId: sugerirIngrediente(it.nombre, inventario) }));
 }
 
@@ -63,29 +75,69 @@ function opcionesUnidad(ing: InventoryIngredient | undefined, actual: Unit | nul
   ];
 }
 
-export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: ConfirmarFacturaProps) {
-  const [proveedor, setProveedor] = useState(preset?.proveedor ?? "");
-  const [fecha, setFecha] = useState(preset?.fecha ?? hoyLocal());
-  const [rnc, setRnc] = useState(preset?.rnc ?? "");
-  const [ncf, setNcf] = useState(preset?.ncf ?? "");
-  const [items, setItems] = useState<FacturaItem[]>(
-    preset?.items?.length ? autoVincular(preset.items, inventario) : [filaVacia()],
-  );
-  const [itbis, setItbis] = useState(preset?.itbis ?? 0);
-  const [totalManual, setTotalManual] = useState<number | null>(preset?.total ?? null);
+export function ConfirmarFactura({ inventario, facturas, onConfirmar }: ConfirmarFacturaProps) {
+  const [lecturas, setLecturas] = useState<LecturaFactura[]>([]);
+  const [enc, setEnc] = useState<Encabezado>({ proveedor: "", fecha: hoyLocal(), rnc: "", ncf: "" });
+  const { proveedor, fecha, rnc, ncf } = enc;
+  const [items, setItems] = useState<ItemBorrador[]>([filaVacia()]);
+  const [itbis, setItbis] = useState(0);
+  const [totalManual, setTotalManual] = useState<number | null>(null);
   const [intentado, setIntentado] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // Las miniaturas son URLs locales: se liberan al guardar o salir de la pantalla.
+  const fotos = useRef<string[]>([]);
+  useEffect(() => () => fotos.current.forEach((u) => URL.revokeObjectURL(u)), []);
 
   const subtotal = items.reduce((acc, it) => acc + it.cantidad * it.precioUnitario, 0);
   const totalCalculado = subtotal + itbis;
   const total = totalManual ?? totalCalculado;
-  const descuadre = totalManual != null && Math.abs(totalManual - totalCalculado) > 1;
+  const descuadre = totalManual != null && !cuadraTotal(subtotal, itbis, totalManual);
+
+  const setCampo = (c: CampoEncabezado, v: string) => setEnc((prev) => ({ ...prev, [c]: v }));
+
+  /** Campos que la IA no leyó con seguridad y que siguen con el valor leído. */
+  const dudosos = new Set(
+    lecturas.flatMap((l) => (l.campos.camposDudosos ?? []).filter((c) => c !== "total" && enc[c] === l.campos[c])),
+  );
+
+  function agregar(l: LecturaFactura) {
+    fotos.current.push(l.foto);
+    const siguientes = [...lecturas, l];
+    setLecturas(siguientes);
+    setItems((prev) => agregarLectura(prev, { ...l, campos: { ...l.campos, items: autoVincular(l.campos.items, inventario) } }));
+    // La fecha arranca en hoy: la primera factura leída la reemplaza.
+    const base = lecturas.length === 0 && enc.fecha === hoyLocal() ? { ...enc, fecha: "" } : enc;
+    const completo = completarEncabezado(base, l.campos);
+    setEnc({ ...completo, fecha: completo.fecha || hoyLocal() });
+    const t = totalesDe(siguientes);
+    setItbis(t.itbis);
+    setTotalManual(t.total);
+  }
+
+  function quitar(l: LecturaFactura) {
+    const cuantos = items.filter((it) => it.origen === l.id).length;
+    if (cuantos > 0 && !confirm(`¿Quitar esta factura y sus ${cuantos} ${cuantos === 1 ? "producto" : "productos"}?`)) return;
+    URL.revokeObjectURL(l.foto);
+    fotos.current = fotos.current.filter((u) => u !== l.foto);
+    const restantes = lecturas.filter((x) => x.id !== l.id);
+    setLecturas(restantes);
+    setItems((prev) => {
+      const sig = quitarLectura(prev, l.id);
+      return sig.length ? sig : [filaVacia()];
+    });
+    setEnc(encabezadoSin(enc, l, restantes, hoyLocal()));
+    const t = totalesDe(restantes);
+    setItbis(t.itbis);
+    setTotalManual(t.total);
+  }
 
   const errores = validarFactura({ proveedor, fecha, rnc, ncf, items }, inventario, facturas);
   const ver = intentado ? errores : { porItem: {} as typeof errores.porItem };
 
   function setItem(i: number, patch: Partial<FacturaItem>) {
-    setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
+    // Lo que se corrige a mano deja de estar en duda.
+    setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...patch, dudoso: undefined } : it)));
   }
 
   function confirmar() {
@@ -96,7 +148,9 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
       );
       return;
     }
-    const conDatos = items.filter((it) => !itemVacio(it)).map((it) => ({ ...it, nombre: it.nombre.trim() }));
+    const conDatos: FacturaItem[] = items
+      .filter((it) => !itemVacio(it))
+      .map((it) => ({ ...aItemFactura(it), nombre: it.nombre.trim() }));
     onConfirmar({
       proveedor: proveedor.trim(),
       fecha,
@@ -108,16 +162,23 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
     });
   }
 
-  const ocrFieldStyle = preset ? { ...inputStyle, borderColor: OCR_BORDER } : inputStyle;
+  const leida = lecturas.length > 0;
+  const ocrFieldStyle = leida ? { ...inputStyle, borderColor: OCR_BORDER } : inputStyle;
+  const campoStyle = (c: CampoEncabezado, error?: string) =>
+    conError(ocrFieldStyle, error ?? (dudosos.has(c) ? "dudoso" : undefined));
+  const avisoDuda = (c: CampoEncabezado, error?: string) =>
+    error ?? (dudosos.has(c) ? "Revisa este dato: no se leía bien en la foto." : undefined);
 
   return (
+    <>
+    <EscanearFactura lecturas={lecturas} onLeida={agregar} onQuitar={quitar} />
     <div ref={panelRef} style={formPanelStyle}>
       <FormHeader
         step="2"
         title="Confirmar y aplicar al inventario"
         hint={
-          preset
-            ? "Datos precargados por el escáner (borde ámbar). Revísalos y corrige antes de guardar."
+          leida
+            ? "Datos precargados de la foto (borde ámbar). Revísalos y corrige antes de guardar."
             : "O cárgala a mano: a quién le compraste (suplidor) y qué compraste (ítems)."
         }
       />
@@ -127,12 +188,12 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
           Suplidor
           <input
             value={proveedor}
-            onChange={(e) => setProveedor(e.target.value)}
+            onChange={(e) => setCampo("proveedor", e.target.value)}
             placeholder="Ej. Colmado El Buen Precio"
             aria-invalid={ver.proveedor ? true : undefined}
-            style={conError(ocrFieldStyle, ver.proveedor)}
+            style={campoStyle("proveedor", ver.proveedor)}
           />
-          <MensajeCampo>{ver.proveedor}</MensajeCampo>
+          <MensajeCampo>{avisoDuda("proveedor", ver.proveedor)}</MensajeCampo>
         </label>
         <label style={labelStyle}>
           Fecha
@@ -140,34 +201,34 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
             type="date"
             value={fecha}
             max={hoyLocal()}
-            onChange={(e) => setFecha(e.target.value)}
+            onChange={(e) => setCampo("fecha", e.target.value)}
             aria-invalid={ver.fecha ? true : undefined}
-            style={conError(ocrFieldStyle, ver.fecha)}
+            style={campoStyle("fecha", ver.fecha)}
           />
-          <MensajeCampo>{ver.fecha}</MensajeCampo>
+          <MensajeCampo>{avisoDuda("fecha", ver.fecha)}</MensajeCampo>
         </label>
         <label style={labelStyle}>
           RNC
           <input
             value={rnc}
-            onChange={(e) => setRnc(soloRnc(e.target.value))}
+            onChange={(e) => setCampo("rnc", soloRnc(e.target.value))}
             placeholder="000-0000000-0"
             inputMode="numeric"
             aria-invalid={ver.rnc ? true : undefined}
-            style={conError(ocrFieldStyle, ver.rnc)}
+            style={campoStyle("rnc", ver.rnc)}
           />
-          <MensajeCampo>{ver.rnc}</MensajeCampo>
+          <MensajeCampo>{avisoDuda("rnc", ver.rnc)}</MensajeCampo>
         </label>
         <label style={labelStyle}>
           NCF
           <input
             value={ncf}
-            onChange={(e) => setNcf(soloNcf(e.target.value))}
+            onChange={(e) => setCampo("ncf", soloNcf(e.target.value))}
             placeholder="B0100000000"
             aria-invalid={ver.ncf ? true : undefined}
-            style={conError(ocrFieldStyle, ver.ncf)}
+            style={campoStyle("ncf", ver.ncf)}
           />
-          <MensajeCampo>{ver.ncf}</MensajeCampo>
+          <MensajeCampo>{avisoDuda("ncf", ver.ncf)}</MensajeCampo>
         </label>
       </div>
 
@@ -197,10 +258,10 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
         </div>
 
         {items.map((it, i) => {
-          const deOcr = Boolean(preset) && i < (preset?.items?.length ?? 0);
+          const deOcr = Boolean(it.origen);
           const ing = it.ingredientId ? inventario.find((x) => x.id === it.ingredientId) : undefined;
           const ei = ver.porItem[i] ?? {};
-          const conErrores = Object.keys(ei).length > 0;
+          const conErrores = Object.keys(ei).length > 0 || Boolean(it.dudoso);
           return (
             <div
               key={i}
@@ -242,7 +303,8 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
                 <span className="factura-campo-etiqueta">Unidad</span>
                 <Select
                   ariaLabel="Unidad"
-                  value={it.unidad ?? ""}
+                  // La unidad de compra del ingrediente es la opción vacía.
+                  value={ing && it.unidad === ing.unidadCompra ? "" : (it.unidad ?? "")}
                   onChange={(v) => setItem(i, { unidad: (v || null) as Unit | null })}
                   placeholder="u."
                   error={ei.unidad}
@@ -289,9 +351,9 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
               >
                 ✕
               </button>
-              {ei.unidad && (
+              {(ei.unidad || it.dudoso) && (
                 <div style={{ flexBasis: "100%" }}>
-                  <MensajeCampo>{ei.unidad}</MensajeCampo>
+                  <MensajeCampo>{ei.unidad ?? "Revisa este producto: no se leía bien en la foto."}</MensajeCampo>
                 </div>
               )}
             </div>
@@ -366,7 +428,8 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
 
       {descuadre && (
         <p style={{ fontSize: 12, color: colors.accent, margin: 0, textAlign: "right" }}>
-          El total no cuadra con subtotal + ITBIS ({formatMoney(totalCalculado)}). Revisa los ítems.{" "}
+          El total no cuadra con los productos ({formatMoney(subtotal)}, o {formatMoney(totalCalculado)} con ITBIS). Revisa
+          los ítems.{" "}
           <button
             type="button"
             onClick={() => setTotalManual(null)}
@@ -397,5 +460,6 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar, preset }: 
         Confirmar y aplicar al inventario
       </button>
     </div>
+    </>
   );
 }

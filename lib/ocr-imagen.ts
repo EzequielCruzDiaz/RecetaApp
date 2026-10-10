@@ -93,3 +93,24 @@ export async function prepararFotoFactura(archivo: Blob): Promise<HTMLCanvasElem
   ctx.putImageData(datos, 0, 0);
   return canvas;
 }
+
+/**
+ * En el navegador: foto lista para subir al servidor. Una foto de celular
+ * pesa 3–6 MB; a `lado` píxeles en JPEG queda en unos cientos de KB y el
+ * texto de un recibo se sigue leyendo.
+ */
+export async function reducirFoto(archivo: Blob, lado = 2000, calidad = 0.85): Promise<Blob> {
+  const bitmap = await createImageBitmap(archivo, { imageOrientation: "from-image" });
+  const escala = Math.min(1, lado / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * escala));
+  canvas.height = Math.max(1, Math.round(bitmap.height * escala));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Este navegador no deja procesar la imagen.");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("No se pudo comprimir la foto."))), "image/jpeg", calidad),
+  );
+}

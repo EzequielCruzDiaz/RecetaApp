@@ -8,7 +8,7 @@ Permite:
 - Mantener un **inventario** de ingredientes con precio de compra, stock y umbral de alerta.
 - Armar **recetas** que referencian ese inventario y ver el costo total y el costo por porción/unidad de rendimiento.
 - **Escalar** una receta a una producción objetivo (ej. "necesito 50 lb de arroz primavera") y ver cómo cambian cantidades y costo.
-- Registrar **facturas** de proveedores (con carga por OCR más adelante) que actualizan el stock.
+- Registrar **facturas** de proveedores (foto → lectura con IA, o con OCR sin conexión) que actualizan el stock.
 
 ## Stack
 
@@ -40,6 +40,9 @@ lib/
   types.ts              Tipos del dominio
   conversion.ts         computeIngredientCost / computeRecipeCost / conversión de unidades
   factura-ocr.ts        parseFacturaTexto: extrae RNC/NCF/fecha/ITBIS/total/ítems del texto del OCR
+  factura-vision.ts     Lectura con Claude (solo servidor, ruta app/api/facturas/leer)
+  factura-lectura.ts    Varias facturas por compra, cuadre con el total, normalización de la IA
+  leer-factura.ts       En el navegador: IA primero, Tesseract de respaldo
   tokens.ts             Sistema de diseño (colores, tipografía, radios)
   recetas-iniciales.ts  Datos demo SOLO para dev (NODE_ENV=development)
   ocr-config.ts         Rutas de los assets de Tesseract self-hosteados
@@ -54,7 +57,7 @@ components/
   RecetaEditor, FichaReceta, EscaladorReceta
   ListaRecetas, FormularioInventario, ListaInventario, ConfirmarFactura, ReciboFactura
   PanelResumen, EncabezadoResumen
-  EscanearFactura                    OCR de factura (tesseract.js)
+  EscanearFactura                    Fotos de facturas leídas (IA o tesseract.js)
 app/
   manifest.ts, icon.tsx, apple-icon.tsx   Manifest e íconos (generados)
 public/
@@ -90,6 +93,10 @@ Los textos van en tuteo ("Carga tus ingredientes"), no en voseo.
   (placeholder "R" — reemplazar por el logo del cliente cuando lo haya).
 - `public/sw.js` es un service worker hecho a mano (`next-pwa` no soporta Turbopack, el default de
   Next 16). Cachea el shell de la app y los assets de OCR; navegación = red primero con fallback offline.
+- **Lectura de facturas.** Con `ANTHROPIC_API_KEY` en el servidor (Vercel → Environment Variables,
+  sin `NEXT_PUBLIC_`), la foto se lee con un modelo de visión de Claude (`FACTURA_MODELO`, por
+  defecto `claude-sonnet-5-5`). Sin clave, sin conexión o si falla, se usa Tesseract en el
+  teléfono. Con Supabase la ruta exige sesión; en modo local queda abierta.
 - El OCR funciona **offline**: worker, core WASM y `spa.traineddata.gz` están self-hosteados en
   `public/tesseract/` (~7.8 MB, versionados en git a propósito para deploys por cliente). Si el peso
   del repo molesta, se pueden bajar en un script de postinstall en vez de commitearlos.
