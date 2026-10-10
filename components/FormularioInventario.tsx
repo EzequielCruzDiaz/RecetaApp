@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import type { BorradorInventoryIngredient, PieceUnit, Unit, UnitCategory } from "@/lib/types";
-import { colors, font, numeric, radius } from "@/lib/tokens";
-import { buttonStyle, inputStyle, NumberInput, Select } from "./ui";
+import { colors, numeric } from "@/lib/tokens";
+import { FormHeader, NumberInput, Select, buttonStyle, formPanelStyle, inputStyle, labelStyle } from "./ui";
 
 const PIEZAS: PieceUnit[] = ["unidad", "docena", "diente", "atado", "lata", "paquete", "saco", "caja"];
 
-interface InventarioFormProps {
+interface FormularioInventarioProps {
   onSubmit: (ingrediente: BorradorInventoryIngredient) => void;
 }
 
-export function InventarioForm({ onSubmit }: InventarioFormProps) {
+export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState<UnitCategory>("peso");
   const [unidadCompra, setUnidadCompra] = useState<Unit>("kg");
@@ -48,29 +48,22 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
   return (
     <form
       onSubmit={submit}
-      style={{
-        background: "#FFFDF8",
-        border: "1.5px dashed #D8C7A8",
-        borderRadius: radius.xl,
-        padding: 22,
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-      }}
+      style={formPanelStyle}
     >
-      <h3 style={{ fontFamily: font.family, fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
-        Agregar ingrediente
-      </h3>
+      <FormHeader title="Agregar ingrediente" hint="Lo que compras, a cómo lo compras y cuánto tienes en el almacén." />
 
-      <input
-        placeholder="Nombre"
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-        style={inputStyle}
-      />
+      <label style={labelStyle}>
+        Nombre
+        <input
+          placeholder="Plátano verde"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          style={inputStyle}
+        />
+      </label>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Categoría
           <Select
             value={categoria}
@@ -80,10 +73,9 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
               { value: "volumen", label: "volumen" },
               { value: "pieza", label: "pieza" },
             ]}
-            style={{ marginTop: 4 }}
           />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Unidad de compra
           <Select
             value={unidadCompra}
@@ -99,10 +91,9 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
               { value: "galon", label: "galón", group: "Volumen" },
               ...PIEZAS.map((p) => ({ value: p, label: p, group: "Pieza" })),
             ]}
-            style={{ marginTop: 4 }}
           />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Precio / unidad
           <NumberInput
             value={precioCompra}
@@ -110,29 +101,29 @@ export function InventarioForm({ onSubmit }: InventarioFormProps) {
             style={{ ...inputStyle, ...numeric }}
           />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted, display: "flex", flexDirection: "column", gap: 4 }}>
+        <label style={labelStyle}>
           Stock actual
           <NumberInput
             value={stock}
             onChange={setStock}
             style={{ ...inputStyle, ...numeric }}
           />
-          <span style={{ fontSize: 10.5, color: colors.textFaint }}>Cuánto hay ahora mismo en el almacén.</span>
+          <span style={{ fontSize: 11, fontWeight: 500, color: colors.textFaint }}>Cuánto hay ahora mismo en el almacén.</span>
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted, display: "flex", flexDirection: "column", gap: 4 }}>
+        <label style={labelStyle}>
           Stock mínimo
           <NumberInput
             value={stockMinimo}
             onChange={setStockMinimo}
             style={{ ...inputStyle, ...numeric }}
           />
-          <span style={{ fontSize: 10.5, color: colors.textFaint }}>
+          <span style={{ fontSize: 11, fontWeight: 500, color: colors.textFaint }}>
             Cuando el stock actual llegue a este número, aparece como &quot;Stock bajo&quot;.
           </span>
         </label>
       </div>
 
-      <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: colors.textMuted }}>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: colors.textMuted }}>
         <input
           type="checkbox"
           checked={conEquivalencia}

@@ -51,8 +51,9 @@ docs/
 components/
   AppShell, StoreProvider, ui        Infra y primitivas visuales
   ServiceWorkerRegister, InstallButton   PWA
-  UnitSelector, IngredientRow, RecipeForm, RecetaCard, EscaladorReceta
-  InventarioForm, InventarioList, ConfirmarFactura, Dashboard
+  RecetaEditor, FichaReceta, EscaladorReceta
+  ListaRecetas, FormularioInventario, ListaInventario, ConfirmarFactura, ReciboFactura
+  PanelResumen, EncabezadoResumen
   EscanearFactura                    OCR de factura (tesseract.js)
 app/
   manifest.ts, icon.tsx, apple-icon.tsx   Manifest e íconos (generados)
@@ -63,9 +64,14 @@ public/
 
 ## Sistema de diseño
 
-Paleta en `lib/tokens.ts`. Regla: `accent` (rojo achiote `#B8471F`) se usa **solo** para lo que
-requiere atención — costo por porción, stock bajo, alertas — nunca decorativo. Los números en
-tablas y precios llevan `tabular-nums`. Las filas de listas se muestran como tarjetas.
+Identidad "colmado y fogón": paleta en `lib/tokens.ts` (verde monte, mango, crema casabe,
+caribe), Fraunces para títulos y cifras, Manrope para texto, y el mosaico criollo (`Mosaico` en
+`components/ui.tsx`) como único motivo decorativo.
+
+Regla: `accent` (rojo achiote `#B8471F`) se usa **solo** para lo accionable (botones, enlaces) y lo
+que requiere atención (stock bajo, alertas), nunca decorativo; la decoración usa `mango`. Los
+números en tablas y precios llevan `tabular-nums`. Las filas de listas se muestran como tarjetas.
+Los textos van en tuteo ("Carga tus ingredientes"), no en voseo.
 
 ## Backend (Supabase)
 
@@ -98,11 +104,11 @@ tablas y precios llevan `tabular-nums`. Las filas de listas se muestran como tar
 | — | Tipos, conversión, tokens, formularios base | ✅ |
 | — | Ruteo con menú, capa de estado, salida de Tailwind, shells de pantallas | ✅ |
 | 1 | App vacía al entregar + empty states + datos demo solo en dev | ✅ |
-| 2 | `RecetaCard` con el diseño nuevo | ✅ (a re-verificar con datos reales) |
+| 2 | `FichaReceta` con el diseño nuevo | ✅ (a re-verificar con datos reales) |
 | 3 | `EscaladorReceta` conectado a `computeIngredientCost` | ✅ (a re-verificar con datos reales) |
 | 4 | Pantalla de Inventario con stock y alertas | ✅ |
 | 5 | Pantalla de Confirmar factura | ✅ (sin OCR todavía) |
-| 6 | Dashboard / Resumen | ✅ |
+| 6 | PanelResumen / Resumen | ✅ |
 | 7 | OCR de facturas dominicanas (`tesseract.js`) | ✅ escanear → parsear (RNC/NCF/fecha/ITBIS/total/ítems) → precargar formulario |
 | 8 | PWA: manifest + íconos, service worker offline, install prompt, OCR self-hosteado | ✅ |
 | 9 | Supabase: capa de datos + auth + `schema.sql` + guía de instalación | ✅ código listo (falta crear el proyecto — `docs/SUPABASE.md`) |

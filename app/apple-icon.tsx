@@ -13,7 +13,7 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#1E2A1F",
+          background: "#17332A",
         }}
       >
         <svg width="124" height="124" viewBox="0 0 48 48">
@@ -38,14 +38,14 @@ export default function AppleIcon() {
             strokeWidth="2.3"
             strokeLinecap="round"
           />
-          <rect x="4.5" y="21.5" width="9" height="6" rx="3" fill="#BE5A26" />
-          <rect x="34.5" y="21.5" width="9" height="6" rx="3" fill="#BE5A26" />
+          <rect x="4.5" y="21.5" width="9" height="6" rx="3" fill="#C7861A" />
+          <rect x="34.5" y="21.5" width="9" height="6" rx="3" fill="#C7861A" />
           <path
             d="M9 20.5h30l-2.4 17.7A4.2 4.2 0 0 1 32.4 42H15.6a4.2 4.2 0 0 1-4.2-3.8L9 20.5z"
-            fill="#E2793A"
+            fill="#F2B23E"
           />
-          <rect x="6" y="15" width="36" height="6" rx="3" fill="#F0A968" />
-          <rect x="21" y="10.5" width="6" height="5.5" rx="2.75" fill="#F0A968" />
+          <rect x="6" y="15" width="36" height="6" rx="3" fill="#F7C96B" />
+          <rect x="21" y="10.5" width="6" height="5.5" rx="2.75" fill="#F7C96B" />
         </svg>
       </div>
     ),

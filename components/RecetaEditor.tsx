@@ -6,7 +6,17 @@ import { colors, font, numeric, radius } from "@/lib/tokens";
 import { etiquetaPrecio } from "@/lib/units";
 import { TIEMPOS, useRecetaEditor, type EstadoEditor, type ItemResumen } from "@/hooks/useRecetaEditor";
 import type { Odometro } from "@/lib/odometer";
-import { buttonStyle, formatMoney, inputStyle, NumberInput, Select } from "./ui";
+import {
+  FormHeader,
+  NumberInput,
+  Select,
+  buttonStyle,
+  formPanelStyle,
+  formatMoney,
+  inputStyle,
+  labelStyle,
+  unidadSingular,
+} from "./ui";
 
 interface RecetaEditorProps {
   inventario: InventoryIngredient[];
@@ -69,8 +79,8 @@ function Odometro({ valor, size = 20, color }: { valor: Odometro; size?: number;
     <span
       style={{
         ...numeric,
-        fontFamily: font.family,
-        fontWeight: 700,
+        fontFamily: font.display,
+        fontWeight: 600,
         fontSize: size,
         color,
         display: "inline-flex",
@@ -129,8 +139,9 @@ function FilaIngrediente({
       <div
         style={{
           border: `1px solid ${item.error ? colors.accent : colors.border}`,
-          borderRadius: radius.lg,
-          padding: 14,
+          borderLeft: `4px solid ${item.error ? colors.accent : colors.mango}`,
+          borderRadius: radius.md,
+          padding: "14px 16px",
           background: colors.surface,
           animation: esNuevo ? "recetaItemEntra 420ms cubic-bezier(0.2,0.9,0.2,1)" : undefined,
           opacity: tachando ? 0.55 : 1,
@@ -141,11 +152,10 @@ function FilaIngrediente({
           <div style={{ minWidth: 0 }}>
             <p
               style={{
-                fontSize: 14,
-                fontWeight: 600,
+                fontSize: 15,
+                fontWeight: 700,
                 margin: 0,
                 color: colors.text,
-                fontFamily: font.family,
                 textDecorationLine: tachando ? "line-through" : "none",
                 textDecorationColor: colors.accent,
                 transition: "text-decoration-color 150ms",
@@ -172,7 +182,7 @@ function FilaIngrediente({
           </button>
         </div>
 
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: colors.textMuted, marginBottom: 10 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: colors.textMuted, marginBottom: 10 }}>
           <input
             type="checkbox"
             checked={item.alGusto}
@@ -194,10 +204,10 @@ function FilaIngrediente({
                     onClick={() => onUnidad(o.unidad)}
                     title={o.caption}
                     style={{
-                      border: `1px solid ${activa ? colors.secondary : colors.border}`,
-                      background: activa ? `${colors.secondary}1f` : "transparent",
-                      color: activa ? colors.text : colors.textMuted,
-                      fontWeight: activa ? 700 : 500,
+                      border: `1px solid ${activa ? colors.monte : colors.border}`,
+                      background: activa ? colors.monte : "transparent",
+                      color: activa ? colors.sidebarText : colors.textMuted,
+                      fontWeight: 700,
                       borderRadius: 999,
                       padding: "4px 10px",
                       fontSize: 12,
@@ -224,7 +234,7 @@ function FilaIngrediente({
                 +
               </button>
 
-              <span style={{ marginLeft: "auto", fontSize: 13, ...numeric, fontWeight: 700, color: colors.text }}>
+              <span style={{ marginLeft: "auto", fontSize: 15, ...numeric, fontWeight: 800, color: colors.text }}>
                 {item.error ? "—" : item.costo !== null ? formatMoney(item.costo) : "—"}
               </span>
             </div>
@@ -240,11 +250,11 @@ function FilaIngrediente({
 }
 
 const pasoBotonStyle: React.CSSProperties = {
-  width: 28,
-  height: 28,
-  borderRadius: 8,
+  width: 32,
+  height: 32,
+  borderRadius: 999,
   border: `1px solid ${colors.border}`,
-  background: colors.bg,
+  background: colors.surfaceAlt,
   color: colors.text,
   fontSize: 16,
   fontWeight: 700,
@@ -283,34 +293,27 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
   }
 
   return (
-    <div
-      style={{
-        background: "#FFFDF8",
-        border: "1.5px dashed #D8C7A8",
-        borderRadius: radius.xl,
-        padding: 22,
-        display: "flex",
-        flexDirection: "column",
-        gap: 14,
-      }}
-    >
-      <div>
-        <h3 style={{ fontFamily: font.family, fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
-          {recetaInicial ? "Editar receta" : "Agregar una receta"}
-        </h3>
-        {!recetaInicial && (
-          <p style={{ fontSize: 12, color: colors.textMuted, margin: "4px 0 0" }}>
-            Elegí ingredientes del inventario y cuánto usa esta receta de cada uno — el costo se calcula solo.
-          </p>
-        )}
-      </div>
+    <div style={formPanelStyle}>
+      <FormHeader
+        title={recetaInicial ? "Editar receta" : "Nueva receta"}
+        hint={
+          recetaInicial
+            ? undefined
+            : "Elige ingredientes del inventario y cuánto lleva de cada uno. El costo se calcula solo."
+        }
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Nombre
-          <input value={estado.nombre} onChange={(e) => acciones.setNombre(e.target.value)} style={inputStyle} />
+          <input
+            value={estado.nombre}
+            onChange={(e) => acciones.setNombre(e.target.value)}
+            placeholder="Moro de guandules"
+            style={inputStyle}
+          />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Categoría
           <input
             value={categoria}
@@ -319,7 +322,7 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
             style={inputStyle}
           />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Rendimiento
           <NumberInput
             min={1}
@@ -328,7 +331,7 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
             style={{ ...inputStyle, ...numeric }}
           />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Unidad de rendimiento
           <input
             value={unidadRendimiento}
@@ -339,7 +342,7 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
         </label>
       </div>
 
-      <label style={{ fontSize: 12, color: colors.textMuted, display: "flex", alignItems: "center", gap: 8 }}>
+      <label style={{ fontSize: 13, fontWeight: 600, color: colors.textMuted, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         Avisarme si el costo por porción supera
         <NumberInput
           min={0}
@@ -351,7 +354,7 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
       </label>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ingredientes</span>
+        <span style={{ ...labelStyle, marginBottom: 4 }}>Ingredientes</span>
 
         {resumen.items.map((item) => (
           <FilaIngrediente
@@ -384,28 +387,31 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: 10,
-          borderTop: `1px solid ${colors.border}`,
-          paddingTop: 12,
+          gap: 12,
+          background: colors.surfaceAlt,
+          border: `1px solid ${colors.border}`,
+          borderRadius: radius.lg,
+          padding: "12px 12px 12px 18px",
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ fontSize: 11, color: colors.textMuted }}>
-            Total <Odometro valor={resumen.odometroTotal} size={13} color={colors.textMuted} />
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: colors.textMuted }}>
+            La tanda <Odometro valor={resumen.odometroTotal} size={14} color={colors.text} />
           </div>
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: 6,
-              fontSize: 11,
+              fontSize: 12.5,
+              fontWeight: 600,
               color: colors.textMuted,
             }}
           >
-            Por {(unidadRendimiento || "porción").replace(/s$/, "")}{" "}
+            Por {unidadSingular(unidadRendimiento || "porciones")}{" "}
             <Odometro
               valor={resumen.odometroPorcion}
-              size={18}
+              size={24}
               color={resumen.superaLimite ? colors.accent : colors.text}
             />
             {resumen.superaLimite && (

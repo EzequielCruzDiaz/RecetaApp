@@ -13,7 +13,8 @@ export function StoreStatus() {
         style={{
           marginBottom: 16,
           padding: "8px 12px",
-          borderRadius: radius.sm,
+          borderRadius: radius.md,
+          background: `${colors.accent}0F`,
           border: `1px solid ${colors.accent}`,
           color: colors.accent,
           fontSize: 13,

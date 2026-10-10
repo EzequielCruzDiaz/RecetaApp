@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { EscaladorReceta } from "@/components/EscaladorReceta";
-import { RecetaCard } from "@/components/RecetaCard";
+import { ListaRecetas } from "@/components/ListaRecetas";
 import { RecetaEditor } from "@/components/RecetaEditor";
-import { EmptyState, PageTitle, ghostButtonStyle } from "@/components/ui";
+import { EmptyState, PageTitle, buttonStyle } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
 
-function irAlForm() {
-  document.getElementById("form-receta")?.scrollIntoView({ behavior: "smooth", block: "center" });
+function irA(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 export default function RecetasPage() {
@@ -18,62 +18,71 @@ export default function RecetasPage() {
   const escalar = recetas.find((r) => r.id === escalarId) ?? null;
   const vacio = recetas.length === 0;
 
+
   function confirmarYBorrar(nombre: string, id: string) {
     if (confirm(`¿Borrar la receta "${nombre}"? Esta acción no se puede deshacer.`)) {
       removeReceta(id);
+      if (id === escalarId) setEscalarId(null);
     }
+  }
+
+  function abrirEscalador(id: string) {
+    const cerrar = id === escalarId;
+    setEscalarId(cerrar ? null : id);
+    if (!cerrar) requestAnimationFrame(() => irA("escalador"));
   }
 
   return (
     <>
-      <PageTitle title="Recetas" subtitle="Costeá recetas contra el inventario y escalá la producción." />
+      <PageTitle
+        eyebrow="Recetario"
+        title="Recetas"
+        subtitle="Costea cada plato contra tu inventario y escala la producción a lo que vas a vender hoy."
+        aside={
+          !vacio && (
+            <button type="button" onClick={() => irA("form-receta")} style={buttonStyle}>
+              + Nueva receta
+            </button>
+          )
+        }
+      />
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
         {vacio ? (
           <EmptyState
-            title="Todavía no cargaste recetas"
+            title="Tu recetario está vacío"
             hint={
               inventario.length === 0
-                ? "Primero cargá algún ingrediente en Inventario; después armá tu primera receta acá."
-                : "Armá tu primera receta seleccionando ingredientes del inventario y sus cantidades."
+                ? "Primero carga algún ingrediente en Inventario; después arma tu primera receta aquí."
+                : "Arma tu primera receta eligiendo ingredientes del inventario y sus cantidades."
             }
             actionLabel="Agregar la primera receta"
-            onAction={irAlForm}
+            onAction={() => irA("form-receta")}
           />
         ) : (
           <>
-            {escalar && <EscaladorReceta receta={escalar} inventario={inventario} />}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 14 }}>
-              {recetas.map((receta) => (
-                <RecetaCard
-                  key={receta.id}
-                  receta={receta}
+            {escalar && (
+              <div id="escalador" style={{ scrollMarginTop: 90 }}>
+                <EscaladorReceta
+                  key={escalar.id}
+                  receta={escalar}
                   inventario={inventario}
-                  accion={
-                    <div style={{ display: "flex", gap: 6, width: "100%" }}>
-                      <button
-                        type="button"
-                        onClick={() => setEscalarId(receta.id === escalarId ? null : receta.id)}
-                        style={{ ...ghostButtonStyle, flex: 1, textAlign: "center" }}
-                      >
-                        {receta.id === escalarId ? "Cerrar escalador" : "Escalar"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => confirmarYBorrar(receta.nombre, receta.id)}
-                        style={ghostButtonStyle}
-                      >
-                        Borrar
-                      </button>
-                    </div>
-                  }
+                  onCerrar={() => setEscalarId(null)}
                 />
-              ))}
-            </div>
+              </div>
+            )}
+
+            <ListaRecetas
+              recetas={recetas}
+              inventario={inventario}
+              escalarId={escalarId}
+              onEscalar={abrirEscalador}
+              onBorrar={(r) => confirmarYBorrar(r.nombre, r.id)}
+            />
           </>
         )}
 
-        <div id="form-receta">
+        <div id="form-receta" style={{ scrollMarginTop: 90 }}>
           <RecetaEditor inventario={inventario} onGuardar={addReceta} />
         </div>
       </div>

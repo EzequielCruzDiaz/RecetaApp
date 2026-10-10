@@ -3,16 +3,16 @@
 import { useRef, useState } from "react";
 import { parseFacturaTexto, type CamposFacturaOCR } from "@/lib/factura-ocr";
 import { TESSERACT_LANG, TESSERACT_OPTIONS } from "@/lib/ocr-config";
-import { colors, font, radius } from "@/lib/tokens";
-import { Card } from "./ui";
+import { colors, font, radius, shadow } from "@/lib/tokens";
+import { Card, Mosaico } from "./ui";
 
 interface EscanearFacturaProps {
   onDetectado: (campos: CamposFacturaOCR) => void;
 }
 
 const ESTADO_COLOR: Record<"idle" | "procesando" | "listo" | "error", string> = {
-  idle: "#C9CFC4",
-  procesando: "#C9CFC4",
+  idle: "#B7C6BC",
+  procesando: "#B7C6BC",
   listo: "#8FBF8F",
   error: "#E8927A",
 };
@@ -54,49 +54,58 @@ export function EscanearFactura({ onDetectado }: EscanearFacturaProps) {
 
   const mensaje =
     estado === "listo"
-      ? "Campos precargados ✓ — revisalos abajo antes de guardar."
+      ? "Campos precargados ✓ Revísalos abajo antes de guardar."
       : estado === "procesando"
         ? `Leyendo la imagen con OCR… ${progreso}%`
         : estado === "error"
           ? error
-          : "Tomá una foto y completamos proveedor, fecha, RNC, NCF e ítems automáticamente.";
+          : "Toma una foto y completamos suplidor, fecha, RNC, NCF e ítems automáticamente. Es opcional.";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div
         style={{
-          background: colors.text,
+          position: "relative",
+          overflow: "hidden",
+          background: colors.monte,
           borderRadius: radius.xl,
-          padding: 24,
+          boxShadow: shadow.raised,
+          padding: "22px 24px",
           display: "flex",
           alignItems: "center",
           gap: 20,
-          color: colors.bg,
+          color: colors.sidebarText,
           flexWrap: "wrap",
         }}
       >
+        <Mosaico color={colors.mango} opacity={0.07} size={56} />
         <div
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: 13,
-            background: colors.secondary,
+            position: "relative",
+            width: 54,
+            height: 54,
+            borderRadius: 18,
+            transform: "rotate(-4deg)",
+            background: colors.mango,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 20 20" fill="none" stroke={colors.text} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 20 20" fill="none" stroke={colors.monte} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="5" width="14" height="11" rx="2" />
             <circle cx="10" cy="10.5" r="3" />
             <path d="M8 5l1-1.5h2L12 5" />
           </svg>
         </div>
 
-        <div style={{ flex: 1, minWidth: 180 }}>
-          <div style={{ fontFamily: font.family, fontSize: 15, fontWeight: 600 }}>Escanear factura</div>
-          <div style={{ fontSize: 13, color: ESTADO_COLOR[estado], marginTop: 2 }}>{mensaje}</div>
+        <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: colors.mango }}>
+            Paso 1 · opcional
+          </div>
+          <div style={{ fontFamily: font.display, fontSize: 22, fontWeight: 600, marginTop: 2 }}>Escanear factura</div>
+          <div style={{ fontSize: 13.5, color: ESTADO_COLOR[estado], marginTop: 4, lineHeight: 1.45 }}>{mensaje}</div>
         </div>
 
         <input
@@ -116,13 +125,14 @@ export function EscanearFactura({ onDetectado }: EscanearFacturaProps) {
           disabled={estado === "procesando"}
           onClick={() => inputRef.current?.click()}
           style={{
-            fontSize: 13.5,
-            fontWeight: 700,
-            padding: "10px 18px",
-            borderRadius: 9,
+            position: "relative",
+            fontSize: 14,
+            fontWeight: 800,
+            padding: "11px 20px",
+            borderRadius: 999,
             border: "none",
-            color: colors.text,
-            background: colors.bg,
+            color: "#FFFFFF",
+            background: colors.accent,
             cursor: "pointer",
             fontFamily: "inherit",
             flexShrink: 0,

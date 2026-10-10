@@ -11,8 +11,8 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     orientation: "portrait-primary",
     lang: "es",
-    background_color: "#F7F3EC",
-    theme_color: "#1E2A1F",
+    background_color: "#F4ECDF",
+    theme_color: "#17332A",
     icons: [
       { src: "/icon", sizes: "512x512", type: "image/png", purpose: "any" },
       { src: "/icon", sizes: "512x512", type: "image/png", purpose: "maskable" },
