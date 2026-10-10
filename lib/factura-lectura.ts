@@ -16,6 +16,8 @@ export interface LecturaFactura {
   foto: string;
   motor: MotorLectura;
   campos: CamposFacturaOCR;
+  /** Si se leyó con OCR, por qué no se pudo usar la IA. */
+  avisoIA?: string;
 }
 
 /** Ítem del formulario: el de la factura más de qué foto vino y si hay que revisarlo. */

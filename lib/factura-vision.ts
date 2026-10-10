@@ -132,17 +132,50 @@ export async function leerFacturaConIA(imagenes: ImagenFactura[]): Promise<Campo
   }
 }
 
+/**
+ * Por qué falló la llamada a la API, en palabras que la persona pueda
+ * resolver. Nunca incluye la clave.
+ */
+export function explicarErrorApi(status: number | undefined, detalle = ""): { codigo: string; mensaje: string } {
+  if (status === 401) {
+    return { codigo: "clave-invalida", mensaje: "La clave de IA no es válida o fue revocada: revisa ANTHROPIC_API_KEY." };
+  }
+  if (status === 400 && /credit balance/i.test(detalle)) {
+    return {
+      codigo: "sin-credito",
+      mensaje: "La cuenta de Anthropic no tiene crédito: recárgala en console.anthropic.com (Billing).",
+    };
+  }
+  if (status === 403) return { codigo: "sin-permiso", mensaje: "La clave no tiene permiso para usar el modelo de lectura." };
+  if (status === 404) {
+    return { codigo: "modelo", mensaje: "El modelo configurado no existe: revisa FACTURA_MODELO y FACTURA_MODELO_RESPALDO." };
+  }
+  if (status === 429) return { codigo: "limite", mensaje: "Se pasó el límite de uso de la cuenta de IA: prueba en un minuto." };
+  if (status && status >= 500) return { codigo: "caido", mensaje: "El servicio de IA está saturado o caído: prueba otra vez." };
+  if (status === undefined) return { codigo: "red", mensaje: "El servidor no pudo conectarse con el servicio de IA." };
+  return { codigo: "api", mensaje: `El servicio de IA respondió con error ${status}.` };
+}
+
 const error = (mensaje: string, status: number, codigo?: string) =>
   Response.json({ error: mensaje, codigo }, { status });
 
 /** `POST /api/facturas/leer` con la foto en `foto` (multipart). */
 export async function atenderLectura(request: Request): Promise<Response> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return error("La lectura con IA no está configurada en este servidor.", 503, "sin-clave");
+  const clave = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!clave) {
+    return error(
+      "El servidor no tiene ANTHROPIC_API_KEY. Si ya la pusiste, reinicia npm run dev o haz redeploy en Vercel.",
+      503,
+      "sin-clave",
+    );
+  }
+  // Un id de la consola ("apikey_…") o una clave cortada al pegarla no sirven.
+  if (!clave.startsWith("sk-ant-")) {
+    return error("ANTHROPIC_API_KEY no parece una clave: tiene que empezar con sk-ant-.", 503, "clave-formato");
   }
   // Con Supabase la app tiene login: sin sesión, nadie gasta la clave del negocio.
   if (supabaseConfigurado && !(await sesionValida(request))) {
-    return error("Inicia sesión para leer facturas.", 401);
+    return error("Tu sesión venció: vuelve a iniciar sesión para leer facturas con IA.", 401, "sin-sesion");
   }
 
   let fotos: FormDataEntryValue[];
@@ -172,7 +205,8 @@ export async function atenderLectura(request: Request): Promise<Response> {
     if (e instanceof ErrorLectura) return error(e.message, e.status);
     if (e instanceof Anthropic.APIError) {
       console.error("Lectura de factura con IA:", e.status, e.message);
-      return error("El servicio de lectura no respondió.", 502);
+      const { codigo, mensaje } = explicarErrorApi(e.status, e.message);
+      return error(mensaje, 502, codigo);
     }
     throw e;
   }

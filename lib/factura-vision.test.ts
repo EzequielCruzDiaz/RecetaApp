@@ -12,7 +12,10 @@ vi.mock("@anthropic-ai/sdk", () => {
   return { default: Anthropic };
 });
 
-const { atenderLectura } = await import("./factura-vision");
+const { atenderLectura, explicarErrorApi } = await import("./factura-vision");
+const { default: AnthropicFalso } = (await import("@anthropic-ai/sdk")) as unknown as {
+  default: { APIError: new (m: string) => Error & { status: number } };
+};
 
 function peticion(...fotos: Blob[]) {
   const cuerpo = new FormData();
@@ -29,7 +32,7 @@ const respuesta = (json: unknown, stop_reason = "end_turn") => ({
 
 describe("POST /api/facturas/leer", () => {
   beforeEach(() => {
-    vi.stubEnv("ANTHROPIC_API_KEY", "sk-prueba");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-prueba");
     create.mockReset();
   });
   afterEach(() => vi.unstubAllEnvs());
@@ -131,5 +134,35 @@ describe("POST /api/facturas/leer", () => {
     const contenido = create.mock.calls[0][0].messages[0].content;
     expect(contenido.filter((b: { type: string }) => b.type === "image")).toHaveLength(3);
     expect((await atenderLectura(peticion(jpg(), jpg(), jpg(), jpg()))).status).toBe(400);
+  });
+
+  it("avisa si la clave no tiene formato de clave (p. ej. el id apikey_…)", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "apikey_01AbC");
+    const res = await atenderLectura(peticion(jpg()));
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.codigo).toBe("clave-formato");
+    expect(JSON.stringify(json)).not.toContain("apikey_01AbC");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("una clave rechazada por la API se explica sin mostrar la clave", async () => {
+    const e = new AnthropicFalso.APIError("invalid x-api-key");
+    e.status = 401;
+    create.mockRejectedValue(e);
+    const json = await (await atenderLectura(peticion(jpg()))).json();
+    expect(json.codigo).toBe("clave-invalida");
+    expect(json.error).not.toContain("sk-ant-prueba");
+  });
+});
+
+describe("explicarErrorApi", () => {
+  it("traduce los errores de la API a algo que se pueda resolver", () => {
+    expect(explicarErrorApi(400, "Your credit balance is too low").codigo).toBe("sin-credito");
+    expect(explicarErrorApi(404).codigo).toBe("modelo");
+    expect(explicarErrorApi(429).codigo).toBe("limite");
+    expect(explicarErrorApi(529).codigo).toBe("caido");
+    expect(explicarErrorApi(undefined).codigo).toBe("red");
+    expect(explicarErrorApi(400, "otra cosa").codigo).toBe("api");
   });
 });
