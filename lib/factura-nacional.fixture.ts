@@ -1,0 +1,116 @@
+/**
+ * Lo que la lectura con IA debería devolver para dos tickets reales de
+ * Supermercado Nacional (factura de crédito fiscal electrónica). Transcritos
+ * a mano de las fotos y comprobados: la suma de los importes da el SUBTOTAL
+ * impreso al centavo.
+ *
+ * Trampas del formato: la línea "cantidad precio" va ENCIMA de la
+ * descripción; VALOR ya trae el ITBIS; el "RNC:" debajo del e-NCF es del
+ * cliente; hay descuentos generales por tasa; MASTERCARD y "hubiese
+ * ahorrado" no son productos. El segundo es una fotocopia en dos columnas
+ * que repite dos líneas (LIDER ATUN DE) y está cortada antes del total.
+ */
+
+/** Ticket de 10 líneas, foto con la mano. Total a pagar 10,375.61. */
+export const NACIONAL_CORTO = {
+  proveedor: "Supermercado Nacional",
+  rnc: "101019921",
+  ncf: "E310010365925",
+  fecha: "2026-09-30",
+  items: [
+    {nombre: "LIDER HABICHUE", cantidad: 1, unidad: null, precioUnitario: 89, importe: 89, dudoso: false},
+    {nombre: "LIDER HABICHUE", cantidad: 1, unidad: null, precioUnitario: 89, importe: 89, dudoso: false},
+    {nombre: "LIDER HABICHUE", cantidad: 1, unidad: null, precioUnitario: 89, importe: 89, dudoso: false},
+    {nombre: "LIDER HABICHUE", cantidad: 1, unidad: null, precioUnitario: 89, importe: 89, dudoso: false},
+    {nombre: "PLATANO MADURO", cantidad: 3, unidad: null, precioUnitario: 20, importe: 60, dudoso: false},
+    {nombre: "PAPA SELECTA L", cantidad: 4, unidad: null, precioUnitario: 235, importe: 940, dudoso: false},
+    {nombre: "HAWAIIAN TROPI", cantidad: 1, unidad: null, precioUnitario: 754.95, importe: 754.95, dudoso: false},
+    {nombre: "LIDER LECHE DE", cantidad: 10, unidad: null, precioUnitario: 78.95, importe: 789.5, dudoso: false},
+    {nombre: "LIDER LECHE EN", cantidad: 12, unidad: null, precioUnitario: 59, importe: 708, dudoso: false},
+    {nombre: "LIDER HUEVOS B", cantidad: 35, unidad: null, precioUnitario: 208.95, importe: 7313.25, dudoso: false},
+  ],
+  subtotal: 10921.7,
+  descuento: 546.09,
+  itbis: 223.81,
+  total: 10375.61,
+  camposDudosos: [],
+  dudas: [],
+};
+
+/** Fotocopia en dos columnas, 62 líneas, cortada después del primer descuento. */
+export const NACIONAL_FOTOCOPIA = {
+  proveedor: "Supermercado Nacional",
+  rnc: "101019921",
+  ncf: "E310010336373",
+  fecha: "2026-09-27",
+  items: [
+    {nombre: "LIDER TORTILLA", cantidad: 1, unidad: null, precioUnitario: 79.95, importe: 79.95, dudoso: false},
+    {nombre: "LIDER TORTILLA", cantidad: 1, unidad: null, precioUnitario: 79.95, importe: 79.95, dudoso: false},
+    {nombre: "LIDER TORTILLA", cantidad: 1, unidad: null, precioUnitario: 79.95, importe: 79.95, dudoso: false},
+    {nombre: "LIDER TORTILLA", cantidad: 1, unidad: null, precioUnitario: 79.95, importe: 79.95, dudoso: false},
+    {nombre: "COSTILLA AHUMA", cantidad: 0.94, unidad: "lb", precioUnitario: 178.95, importe: 168.21, dudoso: false},
+    {nombre: "COSTILLA AHUMA", cantidad: 0.8, unidad: "lb", precioUnitario: 178.95, importe: 143.16, dudoso: false},
+    {nombre: "COSTILLA AHUMA", cantidad: 0.96, unidad: "lb", precioUnitario: 178.95, importe: 171.79, dudoso: false},
+    {nombre: "COSTILLA AHUMA", cantidad: 0.8, unidad: "lb", precioUnitario: 178.95, importe: 143.16, dudoso: false},
+    {nombre: "COSTILLA AHUMA", cantidad: 0.8, unidad: "lb", precioUnitario: 178.95, importe: 143.16, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 1.58, unidad: "lb", precioUnitario: 279, importe: 440.82, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 1.03, unidad: "lb", precioUnitario: 279, importe: 287.37, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 1.37, unidad: "lb", precioUnitario: 279, importe: 382.23, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 1.45, unidad: "lb", precioUnitario: 279, importe: 404.55, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 1.18, unidad: "lb", precioUnitario: 279, importe: 329.22, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 1.12, unidad: "lb", precioUnitario: 279, importe: 312.48, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 1.1, unidad: "lb", precioUnitario: 279, importe: 306.9, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 1.25, unidad: "lb", precioUnitario: 279, importe: 348.75, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 0.89, unidad: "lb", precioUnitario: 279, importe: 248.31, dudoso: false},
+    {nombre: "BACALAO NORUEG", cantidad: 0.82, unidad: "lb", precioUnitario: 279, importe: 228.78, dudoso: false},
+    {nombre: "LIDER HAMBURGU", cantidad: 1, unidad: null, precioUnitario: 359.95, importe: 359.95, dudoso: false},
+    {nombre: "LIDER HAMBURGU", cantidad: 1, unidad: null, precioUnitario: 359.95, importe: 359.95, dudoso: false},
+    {nombre: "LIDER HAMBURGU", cantidad: 1, unidad: null, precioUnitario: 359.95, importe: 359.95, dudoso: false},
+    {nombre: "LIDER HAMBURGU", cantidad: 1, unidad: null, precioUnitario: 359.95, importe: 359.95, dudoso: false},
+    {nombre: "LIDER ATUN DE", cantidad: 40, unidad: null, precioUnitario: 59.95, importe: 2398.0, dudoso: false},
+    {nombre: "LIDER ATUN DE", cantidad: 8, unidad: null, precioUnitario: 59.95, importe: 479.6, dudoso: false},
+    {nombre: "LIDER GUANDULE", cantidad: 32, unidad: null, precioUnitario: 49.95, importe: 1598.4, dudoso: false},
+    {nombre: "LIDER ACEITE B", cantidad: 3, unidad: null, precioUnitario: 299.95, importe: 899.85, dudoso: false},
+    {nombre: "LIDER ACEITE B", cantidad: 2, unidad: null, precioUnitario: 299.95, importe: 599.9, dudoso: false},
+    {nombre: "LIDER ACEITE B", cantidad: 3, unidad: null, precioUnitario: 529.95, importe: 1589.85, dudoso: false},
+    {nombre: "LIDER HABICHUE", cantidad: 28, unidad: null, precioUnitario: 49.95, importe: 1398.6, dudoso: false},
+    {nombre: "LIDER HONGOS E", cantidad: 9, unidad: null, precioUnitario: 79.95, importe: 719.55, dudoso: false},
+    {nombre: "LIDER HONGOS E", cantidad: 1, unidad: null, precioUnitario: 69.0, importe: 69.0, dudoso: false},
+    {nombre: "LIDER GARBANZO", cantidad: 7, unidad: null, precioUnitario: 49.95, importe: 349.65, dudoso: false},
+    {nombre: "LIDER PETIT PO", cantidad: 10, unidad: null, precioUnitario: 49.95, importe: 499.5, dudoso: false},
+    {nombre: "LIDER ACEITUNA", cantidad: 4, unidad: null, precioUnitario: 134.95, importe: 539.8, dudoso: false},
+    {nombre: "LIDER ATUN DE", cantidad: 1, unidad: null, precioUnitario: 59.95, importe: 59.95, dudoso: false},
+    {nombre: "LIDER GUANDULE", cantidad: 1, unidad: null, precioUnitario: 49.95, importe: 49.95, dudoso: false},
+    {nombre: "LIDER GUANDULE", cantidad: 1, unidad: null, precioUnitario: 49.95, importe: 49.95, dudoso: false},
+    {nombre: "PAPA SELECTA L", cantidad: 2, unidad: null, precioUnitario: 235, importe: 470, dudoso: false},
+    {nombre: "TSMART ADEREZO", cantidad: 2, unidad: null, precioUnitario: 179.95, importe: 359.9, dudoso: false},
+    {nombre: "TSMART ADEREZO", cantidad: 2, unidad: null, precioUnitario: 179.95, importe: 359.9, dudoso: false},
+    {nombre: "TSMART ADEREZO", cantidad: 2, unidad: null, precioUnitario: 179.95, importe: 359.9, dudoso: false},
+    {nombre: "FC QUESO PARME", cantidad: 2, unidad: null, precioUnitario: 299.95, importe: 599.9, dudoso: false},
+    {nombre: "GOYA AGRIO LIM", cantidad: 4, unidad: null, precioUnitario: 142.95, importe: 571.8, dudoso: false},
+    {nombre: "DON PANCHO VIN", cantidad: 2, unidad: null, precioUnitario: 234.95, importe: 469.9, dudoso: false},
+    {nombre: "EL CHEFF VINO", cantidad: 2, unidad: null, precioUnitario: 234.95, importe: 469.9, dudoso: false},
+    {nombre: "LIDER ALMENDRA", cantidad: 2, unidad: null, precioUnitario: 239.95, importe: 479.9, dudoso: false},
+    {nombre: "LIDER PAPEL AL", cantidad: 2, unidad: null, precioUnitario: 58.95, importe: 117.9, dudoso: false},
+    {nombre: "LIDER PAPEL AL", cantidad: 3, unidad: null, precioUnitario: 74.95, importe: 224.85, dudoso: false},
+    {nombre: "PEREJIL LISO 8", cantidad: 3, unidad: null, precioUnitario: 44.95, importe: 134.85, dudoso: false},
+    {nombre: "PEREJIL RIZADO", cantidad: 1, unidad: null, precioUnitario: 44.95, importe: 44.95, dudoso: false},
+    {nombre: "PAPA CRIOLLA M", cantidad: 1, unidad: null, precioUnitario: 174.75, importe: 174.75, dudoso: false},
+    {nombre: "LIDER CAJA DE", cantidad: 2, unidad: null, precioUnitario: 42, importe: 84, dudoso: false},
+    {nombre: "LIDER NACHOS 4", cantidad: 1, unidad: null, precioUnitario: 148.95, importe: 148.95, dudoso: false},
+    {nombre: "KINGSEAL BAMBO", cantidad: 1, unidad: null, precioUnitario: 79.95, importe: 79.95, dudoso: false},
+    {nombre: "PEPIN VIGA MIN", cantidad: 1, unidad: null, precioUnitario: 147.95, importe: 147.95, dudoso: false},
+    {nombre: "LIDER LECHE EN", cantidad: 12, unidad: null, precioUnitario: 59, importe: 708, dudoso: false},
+    {nombre: "LIDER MIEL DE", cantidad: 1, unidad: null, precioUnitario: 379.95, importe: 379.95, dudoso: false},
+    {nombre: "EUROP FRITE PA", cantidad: 2, unidad: null, precioUnitario: 359.95, importe: 719.9, dudoso: false},
+    {nombre: "SDONE PALILLOS", cantidad: 1, unidad: null, precioUnitario: 309.95, importe: 309.95, dudoso: false},
+    {nombre: "MYDIBEL PAPAS", cantidad: 1, unidad: null, precioUnitario: 359.95, importe: 359.95, dudoso: false},
+    {nombre: "LIDER SALCHICH", cantidad: 2, unidad: null, precioUnitario: 599.95, importe: 1199.9, dudoso: false},
+  ],
+  subtotal: 26096.94,
+  descuento: 154.48,
+  itbis: null,
+  total: null,
+  camposDudosos: ["total"],
+  dudas: ["La foto está cortada antes del total a pagar."],
+};

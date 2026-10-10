@@ -190,12 +190,13 @@ function FotoLeida({ lectura, numero, onQuitar }: { lectura: LecturaFactura; num
       </div>
       {cuadre.cuadra === true && (
         <div style={{ fontSize: 12, fontWeight: 600, color: colors.positive, ...numeric }}>
-          Cuadra con el total ({formatMoney(cuadre.total!)}) ✓
+          Cuadra con el {cuadre.contra} ({formatMoney(cuadre.monto!)}) ✓
         </div>
       )}
       {cuadre.cuadra === false && (
         <div role="alert" style={{ fontSize: 12, fontWeight: 600, color: colors.accent, lineHeight: 1.35, ...numeric }}>
-          Los productos suman {formatMoney(cuadre.suma)} y la factura dice {formatMoney(cuadre.total!)}. Revisa los marcados.
+          Los productos suman {formatMoney(cuadre.suma)} y el {cuadre.contra} de la factura dice{" "}
+          {formatMoney(cuadre.monto!)}. Revisa los marcados.
         </div>
       )}
       {campos.dudas?.map((d) => (
