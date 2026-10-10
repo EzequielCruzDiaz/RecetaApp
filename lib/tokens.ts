@@ -10,6 +10,7 @@ export const colors = {
   accent: "#B8471F",
   positive: "#3E7B4F",
   mango: "#F2B23E",
+  mangoSoft: "#FFF6E3",
   caribe: "#1F6E86",
   monte: "#17332A",
   monteSoft: "#21443A",

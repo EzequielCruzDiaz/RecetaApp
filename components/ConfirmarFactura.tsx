@@ -6,8 +6,8 @@ import type { CamposFacturaOCR } from "@/lib/factura-ocr";
 import { colors, numeric, radius } from "@/lib/tokens";
 import { FormHeader, NumberInput, Select, buttonStyle, formPanelStyle, formatMoney, inputStyle, labelStyle } from "./ui";
 
-const OCR_BORDER = "#E8B04A";
-const OCR_BG = "#FFF6E3";
+const OCR_BORDER = colors.mango;
+const OCR_BG = colors.mangoSoft;
 
 interface ConfirmarFacturaProps {
   inventario: InventoryIngredient[];
@@ -131,6 +131,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
         <span style={labelStyle}>Ítems</span>
 
         <div
+          className="factura-items-encabezado"
           style={{
             display: "flex",
             flexWrap: "wrap",
@@ -167,48 +168,64 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
               padding: 8,
             }}
           >
-            <input
-              placeholder="Ej. Mantequilla en barra"
-              value={it.nombre}
-              onChange={(e) => setItem(i, { nombre: e.target.value })}
-              style={{ ...inputStyle, fontSize: 13, flex: "2 1 160px" }}
-            />
-            <NumberInput
-              value={it.cantidad}
-              onChange={(cantidad) => setItem(i, { cantidad })}
-              style={{ ...inputStyle, fontSize: 13, ...numeric, flex: "1 1 72px" }}
-            />
-            <Select
-              value={it.unidad ?? ""}
-              onChange={(v) => setItem(i, { unidad: (v || null) as Unit | null })}
-              placeholder="u."
-              style={{ flex: "1 1 84px" }}
-              options={[
-                { value: "", label: "u." },
-                { value: "lb", label: "lb" },
-                { value: "kg", label: "kg" },
-                { value: "L", label: "L" },
-                { value: "unidad", label: "unidad" },
-                { value: "paquete", label: "paquete" },
-                { value: "caja", label: "caja" },
-                { value: "saco", label: "saco" },
-              ]}
-            />
-            <NumberInput
-              value={it.precioUnitario}
-              onChange={(precioUnitario) => setItem(i, { precioUnitario })}
-              style={{ ...inputStyle, fontSize: 13, ...numeric, flex: "1 1 90px" }}
-            />
-            <Select
-              value={it.ingredientId ?? ""}
-              onChange={(v) => setItem(i, { ingredientId: v || undefined })}
-              placeholder="— sin vincular —"
-              style={{ flex: "1.4 1 150px" }}
-              options={[
-                { value: "", label: "— sin vincular —" },
-                ...inventario.map((ing) => ({ value: ing.id, label: ing.nombre })),
-              ]}
-            />
+            <div className="factura-campo" style={{ flex: "2 1 160px" }}>
+              <span className="factura-campo-etiqueta">Producto</span>
+              <input
+                aria-label="Producto"
+                placeholder="Ej. Mantequilla en barra"
+                value={it.nombre}
+                onChange={(e) => setItem(i, { nombre: e.target.value })}
+                style={{ ...inputStyle, fontSize: 13 }}
+              />
+            </div>
+            <div className="factura-campo" style={{ flex: "1 1 72px" }}>
+              <span className="factura-campo-etiqueta">Cant.</span>
+              <NumberInput
+                aria-label="Cantidad"
+                value={it.cantidad}
+                onChange={(cantidad) => setItem(i, { cantidad })}
+                style={{ ...inputStyle, fontSize: 13, ...numeric }}
+              />
+            </div>
+            <div className="factura-campo" style={{ flex: "1 1 84px" }}>
+              <span className="factura-campo-etiqueta">Unidad</span>
+              <Select
+                value={it.unidad ?? ""}
+                onChange={(v) => setItem(i, { unidad: (v || null) as Unit | null })}
+                placeholder="u."
+                options={[
+                  { value: "", label: "u." },
+                  { value: "lb", label: "lb" },
+                  { value: "kg", label: "kg" },
+                  { value: "L", label: "L" },
+                  { value: "unidad", label: "unidad" },
+                  { value: "paquete", label: "paquete" },
+                  { value: "caja", label: "caja" },
+                  { value: "saco", label: "saco" },
+                ]}
+              />
+            </div>
+            <div className="factura-campo" style={{ flex: "1 1 90px" }}>
+              <span className="factura-campo-etiqueta">Precio</span>
+              <NumberInput
+                aria-label="Precio"
+                value={it.precioUnitario}
+                onChange={(precioUnitario) => setItem(i, { precioUnitario })}
+                style={{ ...inputStyle, fontSize: 13, ...numeric }}
+              />
+            </div>
+            <div className="factura-campo" style={{ flex: "1.4 1 150px" }}>
+              <span className="factura-campo-etiqueta">Vincular</span>
+              <Select
+                value={it.ingredientId ?? ""}
+                onChange={(v) => setItem(i, { ingredientId: v || undefined })}
+                placeholder="— sin vincular —"
+                options={[
+                  { value: "", label: "— sin vincular —" },
+                  ...inventario.map((ing) => ({ value: ing.id, label: ing.nombre })),
+                ]}
+              />
+            </div>
             <button
               type="button"
               onClick={() => setItems((prev) => prev.filter((_, idx) => idx !== i))}

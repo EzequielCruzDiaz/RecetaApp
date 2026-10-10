@@ -86,6 +86,7 @@ function Odometro({ valor, size = 20, color }: { valor: Odometro; size?: number;
         display: "inline-flex",
       }}
     >
+      <span>RD$</span>
       {valor.entero.map((d, i) => (
         <DigitoColumna key={`e${i}`} {...d} />
       ))}

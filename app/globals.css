@@ -212,6 +212,22 @@ textarea {
   padding: 44px 48px 72px;
 }
 
+.factura-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.factura-campo-etiqueta {
+  display: none;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-faint, #9a8a7c);
+}
+
 @media (max-width: 1100px) {
   .grid-resumen {
     grid-template-columns: minmax(0, 1fr);
@@ -280,6 +296,14 @@ textarea {
 
   .fila-inventario .col-medidor {
     grid-column: 1 / -1;
+  }
+
+  .factura-items-encabezado {
+    display: none !important;
+  }
+
+  .factura-campo-etiqueta {
+    display: block;
   }
 
   .grid-recibos,

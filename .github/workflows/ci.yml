@@ -6,7 +6,7 @@ on:
   push:
     branches: [main, master]
 
-# Si empujás dos veces seguidas al mismo PR, cancela la corrida vieja.
+# Si empujas dos veces seguidas al mismo PR, cancela la corrida vieja.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
