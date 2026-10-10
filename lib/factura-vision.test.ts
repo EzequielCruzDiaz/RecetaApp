@@ -14,9 +14,9 @@ vi.mock("@anthropic-ai/sdk", () => {
 
 const { atenderLectura } = await import("./factura-vision");
 
-function peticion(foto?: Blob) {
+function peticion(...fotos: Blob[]) {
   const cuerpo = new FormData();
-  if (foto) cuerpo.append("foto", foto, "factura.jpg");
+  fotos.forEach((f, i) => cuerpo.append("foto", f, `factura-${i}.jpg`));
   return new Request("http://localhost/api/facturas/leer", { method: "POST", body: cuerpo });
 }
 
@@ -78,5 +78,58 @@ describe("POST /api/facturas/leer", () => {
     create.mockResolvedValue({ stop_reason: "refusal", content: [] });
     const res = await atenderLectura(peticion(jpg()));
     expect(res.status).toBe(422);
+  });
+
+  const cuadra = {
+    proveedor: "Colmado",
+    rnc: null,
+    ncf: null,
+    fecha: null,
+    items: [{ nombre: "Arroz", cantidad: 2, unidad: null, precioUnitario: 45, importe: 90, dudoso: false }],
+    itbis: null,
+    total: 90,
+    camposDudosos: [],
+    dudas: [],
+  };
+  const noCuadra = { ...cuadra, total: 500 };
+
+  it("lee con Haiku y no gasta en Sonnet si cuadra", async () => {
+    create.mockResolvedValue(respuesta(cuadra));
+    expect((await atenderLectura(peticion(jpg()))).status).toBe(200);
+    expect(create.mock.calls.map((c) => c[0].model)).toEqual(["claude-haiku-5-5"]);
+  });
+
+  it("si no cuadra con el total, vuelve a leer una sola vez con Sonnet", async () => {
+    create.mockResolvedValueOnce(respuesta(noCuadra)).mockResolvedValueOnce(respuesta({ ...noCuadra, items: [
+      { nombre: "Arroz", cantidad: 2, unidad: null, precioUnitario: 45, importe: 90, dudoso: false },
+      { nombre: "Aceite", cantidad: 1, unidad: null, precioUnitario: 410, importe: 410, dudoso: false },
+    ] }));
+    const { campos } = await (await atenderLectura(peticion(jpg()))).json();
+    expect(create.mock.calls.map((c) => c[0].model)).toEqual(["claude-haiku-5-5", "claude-sonnet-5-5"]);
+    expect(campos.items).toHaveLength(2);
+  });
+
+  it("si Sonnet falla, se queda con lo que leyó Haiku", async () => {
+    create.mockResolvedValueOnce(respuesta(noCuadra)).mockRejectedValueOnce(new Error("caído"));
+    const res = await atenderLectura(peticion(jpg()));
+    expect(res.status).toBe(200);
+    expect((await res.json()).campos.total).toBe(500);
+  });
+
+  it("el respaldo se puede apagar", async () => {
+    vi.stubEnv("FACTURA_MODELO_RESPALDO", "no");
+    vi.resetModules();
+    const { atenderLectura: sinRespaldo } = await import("./factura-vision");
+    create.mockResolvedValue(respuesta(noCuadra));
+    await sinRespaldo(peticion(jpg()));
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it("manda las franjas de un ticket largo juntas, en orden", async () => {
+    create.mockResolvedValue(respuesta(cuadra));
+    await atenderLectura(peticion(jpg(), jpg(), jpg()));
+    const contenido = create.mock.calls[0][0].messages[0].content;
+    expect(contenido.filter((b: { type: string }) => b.type === "image")).toHaveLength(3);
+    expect((await atenderLectura(peticion(jpg(), jpg(), jpg(), jpg()))).status).toBe(400);
   });
 });

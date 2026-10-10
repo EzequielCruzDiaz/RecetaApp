@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aGrises, escalaPara, umbralAdaptativo } from "./ocr-imagen";
+import { aGrises, escalaPara, estirarContraste, franjasFactura, umbralAdaptativo } from "./ocr-imagen";
 
 describe("escalaPara", () => {
   it("achica una foto de 12 MP a ~2000 px de lado mayor", () => {
@@ -39,5 +39,38 @@ describe("umbralAdaptativo", () => {
     // se deja fuera el borde duro entre luz y sombra.
     const papel = fila.filter((_, x) => x !== 10 && x !== 30 && (x < 16 || x > 24));
     expect(papel.every((v) => v === 255)).toBe(true);
+  });
+});
+
+describe("estirarContraste", () => {
+  it("lleva el papel desteñido a blanco y la tinta gris a negro", () => {
+    const gris = new Uint8ClampedArray(1000).fill(180);
+    gris.fill(110, 0, 200);
+    const out = estirarContraste(gris);
+    expect(out[0]).toBe(0);
+    expect(out[999]).toBe(255);
+  });
+
+  it("no toca una imagen plana", () => {
+    const gris = new Uint8ClampedArray(100).fill(128);
+    expect(estirarContraste(gris)).toBe(gris);
+  });
+});
+
+describe("franjasFactura", () => {
+  it("una factura de hoja va entera", () => {
+    expect(franjasFactura(1200, 1600)).toEqual([{ y: 0, alto: 1600 }]);
+  });
+
+  it("un ticket largo se parte en franjas que cubren todo y se solapan", () => {
+    const f = franjasFactura(600, 3600);
+    expect(f).toHaveLength(3);
+    expect(f[0].y).toBe(0);
+    expect(f[2].y + f[2].alto).toBe(3600);
+    for (let i = 1; i < f.length; i++) expect(f[i].y).toBeLessThan(f[i - 1].y + f[i - 1].alto);
+  });
+
+  it("no pasa de 3 franjas aunque el ticket sea larguísimo", () => {
+    expect(franjasFactura(400, 10000)).toHaveLength(3);
   });
 });

@@ -6,7 +6,7 @@
 import { combinarLecturas, parseFacturaTexto, type CamposFacturaOCR } from "./factura-ocr";
 import type { MotorLectura } from "./factura-lectura";
 import { PASADAS_OCR, TESSERACT_LANG, TESSERACT_OPTIONS } from "./ocr-config";
-import { prepararFotoFactura, reducirFoto } from "./ocr-imagen";
+import { fotoParaIA, prepararFotoFactura } from "./ocr-imagen";
 import { getSupabase } from "./supabase/client";
 import { supabaseConfigurado } from "./supabase/config";
 
@@ -29,7 +29,7 @@ async function leerConIA(foto: Blob): Promise<RespuestaIA> {
   if (typeof navigator !== "undefined" && !navigator.onLine) return { ok: false, aviso: "Sin conexión" };
   try {
     const cuerpo = new FormData();
-    cuerpo.append("foto", await reducirFoto(foto), "factura.jpg");
+    (await fotoParaIA(foto)).forEach((parte, i) => cuerpo.append("foto", parte, `factura-${i + 1}.jpg`));
     const res = await fetch("/api/facturas/leer", { method: "POST", body: cuerpo, headers: await encabezadoSesion() });
     const json = (await res.json().catch(() => ({}))) as { campos?: CamposFacturaOCR; error?: string; codigo?: string };
     if (res.ok && json.campos) return { ok: true, campos: json.campos };

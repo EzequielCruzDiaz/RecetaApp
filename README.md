@@ -94,8 +94,9 @@ Los textos van en tuteo ("Carga tus ingredientes"), no en voseo.
 - `public/sw.js` es un service worker hecho a mano (`next-pwa` no soporta Turbopack, el default de
   Next 16). Cachea el shell de la app y los assets de OCR; navegación = red primero con fallback offline.
 - **Lectura de facturas.** Con `ANTHROPIC_API_KEY` en el servidor (Vercel → Environment Variables,
-  sin `NEXT_PUBLIC_`), la foto se lee con un modelo de visión de Claude (`FACTURA_MODELO`, por
-  defecto `claude-sonnet-5-5`). Sin clave, sin conexión o si falla, se usa Tesseract en el
+  sin `NEXT_PUBLIC_`), la foto se lee con un modelo de visión de Claude: Haiku (`FACTURA_MODELO`) y, solo si
+  no cuadra con el total, otra vez con Sonnet (`FACTURA_MODELO_RESPALDO`, `no` para apagarlo).
+  Los tickets largos se mandan en franjas. Sin clave, sin conexión o si falla, se usa Tesseract en el
   teléfono. Con Supabase la ruta exige sesión; en modo local queda abierta.
 - El OCR funciona **offline**: worker, core WASM y `spa.traineddata.gz` están self-hosteados en
   `public/tesseract/` (~7.8 MB, versionados en git a propósito para deploys por cliente). Si el peso

@@ -10,15 +10,29 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { supabaseConfigurado } from "./supabase/config";
 import { sesionValida } from "./supabase/sesion";
-import { ESQUEMA_LECTURA, normalizarLecturaIA } from "./factura-lectura";
+import { ESQUEMA_LECTURA, necesitaRespaldo, normalizarLecturaIA } from "./factura-lectura";
 import type { CamposFacturaOCR } from "./factura-ocr";
 
-/** Sonnet lee bien recibos térmicos y tickets largos; `claude-haiku-5-5` sale ~20× más barato. */
-export const MODELO_FACTURA = process.env.FACTURA_MODELO || "claude-sonnet-5-5";
+/** Haiku lee casi todas las facturas por una fracción de centavo. */
+export const MODELO_FACTURA = process.env.FACTURA_MODELO || "claude-haiku-5-5";
+/**
+ * Si lo que leyó Haiku no cuadra con el total (o no leyó productos), se
+ * vuelve a leer una sola vez con este modelo, más caro pero más fino con
+ * tickets borrosos. `FACTURA_MODELO_RESPALDO=no` lo apaga.
+ */
+export const MODELO_RESPALDO =
+  process.env.FACTURA_MODELO_RESPALDO === "no" ? null : process.env.FACTURA_MODELO_RESPALDO || "claude-sonnet-5-5";
 
 const TIPOS_IMAGEN = ["image/jpeg", "image/png", "image/webp"] as const;
 type TipoImagen = (typeof TIPOS_IMAGEN)[number];
 const MAX_BYTES = 5 * 1024 * 1024;
+/** Un ticket largo llega partido en franjas (ver `franjasFactura`). */
+const MAX_IMAGENES = 3;
+
+export interface ImagenFactura {
+  datos: string;
+  tipo: TipoImagen;
+}
 
 const INSTRUCCIONES = `Lees fotos de facturas de compra de negocios de comida en República Dominicana (supermercados, colmados, distribuidores, mercados) para registrar la compra en el inventario.
 
@@ -38,6 +52,8 @@ Devuelve:
 - dudas: notas cortas en español (máximo 3) sobre lo que no se pudo leer, para que la persona lo revise. Vacío si todo se lee bien.
 
 No son productos: subtotales, ITBIS, descuentos generales, propinas, formas de pago (efectivo, tarjeta, VISA, MASTERCARD, cambio, devuelta), "usted ahorró" / "hubiese ahorrado", puntos o lealtad, ni datos del cajero o la caja.
+Si llegan varias imágenes, son franjas de la MISMA factura de arriba hacia abajo y se solapan un poco: la línea que aparece al final de una franja y al principio de la siguiente es una sola, no la cuentes dos veces.
+Antes de responder, comprueba que la suma de los importes dé el total (con el ITBIS incluido o sumado aparte). Si no cuadra, vuelve a mirar las líneas y marca como dudoso lo que no puedas confirmar.
 Nunca inventes: si un dato no se ve, devuelve null. Si la imagen no es una factura, devuelve items vacío y explícalo en dudas.`;
 
 export class ErrorLectura extends Error {
@@ -51,20 +67,23 @@ export class ErrorLectura extends Error {
 
 let cliente: Anthropic | null = null;
 
-export async function leerFacturaConIA(datosBase64: string, tipo: TipoImagen): Promise<CamposFacturaOCR> {
+async function leerConModelo(modelo: string, imagenes: ImagenFactura[]): Promise<CamposFacturaOCR> {
   cliente ??= new Anthropic();
   const respuesta = await cliente.messages.create({
-    model: MODELO_FACTURA,
-    max_tokens: 8000,
-    // Extracción: poco razonamiento basta y responde más rápido.
-    output_config: { effort: "low", format: { type: "json_schema", schema: ESQUEMA_LECTURA } },
+    model: modelo,
+    max_tokens: 16000,
+    // `medium` le da a Haiku margen para cuadrar los importes con el total.
+    output_config: { effort: "medium", format: { type: "json_schema", schema: ESQUEMA_LECTURA } },
     system: INSTRUCCIONES,
     messages: [
       {
         role: "user",
         content: [
-          { type: "image", source: { type: "base64", media_type: tipo, data: datosBase64 } },
-          { type: "text", text: "Lee esta factura." },
+          ...imagenes.map((img) => ({
+            type: "image" as const,
+            source: { type: "base64" as const, media_type: img.tipo, data: img.datos },
+          })),
+          { type: "text", text: imagenes.length > 1 ? `Lee esta factura (${imagenes.length} franjas).` : "Lee esta factura." },
         ],
       },
     ],
@@ -81,6 +100,30 @@ export async function leerFacturaConIA(datosBase64: string, tipo: TipoImagen): P
   }
 }
 
+/** Lee con el modelo barato y, solo si el resultado no cuadra, una vez con el de respaldo. */
+export async function leerFacturaConIA(imagenes: ImagenFactura[]): Promise<CamposFacturaOCR> {
+  let primera: CamposFacturaOCR | undefined;
+  let fallo: unknown;
+  try {
+    primera = await leerConModelo(MODELO_FACTURA, imagenes);
+    if (!necesitaRespaldo(primera)) return primera;
+  } catch (e) {
+    fallo = e;
+  }
+  if (!MODELO_RESPALDO || MODELO_RESPALDO === MODELO_FACTURA) {
+    if (primera) return primera;
+    throw fallo;
+  }
+  try {
+    const segunda = await leerConModelo(MODELO_RESPALDO, imagenes);
+    // Si el respaldo tampoco cuadra pero no leyó nada, la primera lectura sirve más.
+    return primera && segunda.items.length === 0 ? primera : segunda;
+  } catch (e) {
+    if (primera) return primera;
+    throw e;
+  }
+}
+
 const error = (mensaje: string, status: number, codigo?: string) =>
   Response.json({ error: mensaje, codigo }, { status });
 
@@ -94,19 +137,28 @@ export async function atenderLectura(request: Request): Promise<Response> {
     return error("Inicia sesión para leer facturas.", 401);
   }
 
-  let foto: FormDataEntryValue | null;
+  let fotos: FormDataEntryValue[];
   try {
-    foto = (await request.formData()).get("foto");
+    fotos = (await request.formData()).getAll("foto");
   } catch {
     return error("Manda la foto como multipart en el campo `foto`.", 400);
   }
-  if (!(foto instanceof Blob)) return error("Falta la foto.", 400);
-  if (!TIPOS_IMAGEN.includes(foto.type as TipoImagen)) return error("La foto tiene que ser JPG, PNG o WebP.", 415);
-  if (foto.size > MAX_BYTES) return error("La foto pesa demasiado (máximo 5 MB).", 413);
+  if (fotos.length === 0 || !fotos.every((f) => f instanceof Blob)) return error("Falta la foto.", 400);
+  if (fotos.length > MAX_IMAGENES) return error(`Máximo ${MAX_IMAGENES} imágenes por factura.`, 400);
+  const blobs = fotos as Blob[];
+  if (!blobs.every((f) => TIPOS_IMAGEN.includes(f.type as TipoImagen))) {
+    return error("La foto tiene que ser JPG, PNG o WebP.", 415);
+  }
+  if (blobs.some((f) => f.size > MAX_BYTES)) return error("La foto pesa demasiado (máximo 5 MB).", 413);
 
   try {
-    const datos = Buffer.from(await foto.arrayBuffer()).toString("base64");
-    const campos = await leerFacturaConIA(datos, foto.type as TipoImagen);
+    const imagenes = await Promise.all(
+      blobs.map(async (f) => ({
+        datos: Buffer.from(await f.arrayBuffer()).toString("base64"),
+        tipo: f.type as TipoImagen,
+      })),
+    );
+    const campos = await leerFacturaConIA(imagenes);
     return Response.json({ campos });
   } catch (e) {
     if (e instanceof ErrorLectura) return error(e.message, e.status);

@@ -50,6 +50,7 @@ export interface Database {
           categoria: string | null;
           porciones: number;
           unidad_rendimiento: string;
+          produccion: number | null;
           created_at: string;
         };
         Insert: {
@@ -58,6 +59,7 @@ export interface Database {
           categoria?: string | null;
           porciones?: number;
           unidad_rendimiento?: string;
+          produccion?: number | null;
           created_at?: string;
         };
         Update: {
@@ -65,6 +67,7 @@ export interface Database {
           categoria?: string | null;
           porciones?: number;
           unidad_rendimiento?: string;
+          produccion?: number | null;
         };
         Relationships: [];
       };

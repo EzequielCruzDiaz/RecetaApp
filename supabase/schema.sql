@@ -55,6 +55,8 @@ create table if not exists public.invoice_items (
   cantidad_stock  numeric
 );
 alter table public.invoice_items add column if not exists cantidad_stock numeric;
+-- Escalado de producción guardado por receta (agregado después: se crea sin borrar datos).
+alter table public.recipes add column if not exists produccion numeric;
 create index if not exists invoice_items_invoice_id_idx
   on public.invoice_items(invoice_id);
 

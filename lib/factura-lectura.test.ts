@@ -6,6 +6,7 @@ import {
   cuadraTotal,
   cuadreLectura,
   encabezadoSin,
+  necesitaRespaldo,
   normalizarLecturaIA,
   quitarLectura,
   totalesDe,
@@ -202,5 +203,18 @@ describe("normalizarLecturaIA", () => {
 
   it("aguanta una respuesta vacía", () => {
     expect(normalizarLecturaIA(null)).toMatchObject({ items: [], dudas: [], camposDudosos: [] });
+  });
+});
+
+describe("necesitaRespaldo", () => {
+  const base = { items: [item("Arroz", 2, 45), item("Sal", 1, 20)], textoCrudo: "" };
+  it("no, si cuadra con el total o no hay total", () => {
+    expect(necesitaRespaldo({ ...base, total: 110 })).toBe(false);
+    expect(necesitaRespaldo(base)).toBe(false);
+  });
+  it("sí, si no cuadra, no leyó productos o muchos son dudosos", () => {
+    expect(necesitaRespaldo({ ...base, total: 400 })).toBe(true);
+    expect(necesitaRespaldo({ items: [], textoCrudo: "" })).toBe(true);
+    expect(necesitaRespaldo({ ...base, itemsDudosos: [0] })).toBe(true);
   });
 });

@@ -115,6 +115,18 @@ export function cuadreLectura(campos: CamposFacturaOCR): Cuadre {
   return { suma, total: campos.total, cuadra: cuadraTotal(suma, campos.itbis ?? 0, campos.total) };
 }
 
+/**
+ * ¿Conviene volver a leer la factura con un modelo más fuerte? Cuando no
+ * salió ningún producto, los productos no cuadran con el total o hay
+ * muchos marcados como dudosos.
+ */
+export function necesitaRespaldo(campos: CamposFacturaOCR): boolean {
+  const n = campos.items.length;
+  if (n === 0) return true;
+  if (cuadreLectura(campos).cuadra === false) return true;
+  return (campos.itemsDudosos?.length ?? 0) * 3 > n;
+}
+
 // ── Respuesta del modelo de visión ──────────────────────────────────────
 
 /** Unidades que se le ofrecen al modelo; el resto del catálogo no aparece en facturas. */
