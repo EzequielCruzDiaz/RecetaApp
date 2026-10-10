@@ -13,7 +13,7 @@ import { supabaseConfigurado } from "./supabase/config";
 export interface ResultadoLectura {
   motor: MotorLectura;
   campos: CamposFacturaOCR;
-  /** Por qué no se usó la IA, si no se usó. */
+  /** Por qué no se usó la IA, si no se usó (se muestra en la tarjeta de la foto). */
   avisoIA?: string;
 }
 
@@ -25,19 +25,31 @@ async function encabezadoSesion(): Promise<Record<string, string>> {
 
 type RespuestaIA = { ok: true; campos: CamposFacturaOCR } | { ok: false; aviso?: string };
 
+/** Por qué no se pudo usar la IA cuando la ruta no devolvió un JSON nuestro (proxy, Vercel, timeout). */
+function motivoPorEstado(status: number): string {
+  if (status === 404) return "La app no tiene la ruta de lectura con IA: actualízala (git pull y redeploy).";
+  if (status === 413) return "La foto pesa demasiado para el servidor.";
+  if (status === 504) return "El servidor tardó demasiado leyendo la factura.";
+  return `El servidor respondió con error ${status}.`;
+}
+
 async function leerConIA(foto: Blob): Promise<RespuestaIA> {
-  if (typeof navigator !== "undefined" && !navigator.onLine) return { ok: false, aviso: "Sin conexión" };
+  if (typeof navigator !== "undefined" && !navigator.onLine) return { ok: false, aviso: "No hay conexión a internet." };
+  const cuerpo = new FormData();
   try {
-    const cuerpo = new FormData();
     (await fotoParaIA(foto)).forEach((parte, i) => cuerpo.append("foto", parte, `factura-${i + 1}.jpg`));
-    const res = await fetch("/api/facturas/leer", { method: "POST", body: cuerpo, headers: await encabezadoSesion() });
-    const json = (await res.json().catch(() => ({}))) as { campos?: CamposFacturaOCR; error?: string; codigo?: string };
-    if (res.ok && json.campos) return { ok: true, campos: json.campos };
-    // Sin clave es una instalación sin IA: no hay nada que avisar.
-    return { ok: false, aviso: json.codigo === "sin-clave" ? undefined : json.error ?? `Error ${res.status}` };
   } catch {
-    return { ok: false, aviso: "No se pudo conectar" };
+    return { ok: false, aviso: "Este navegador no pudo preparar la foto para la IA." };
   }
+  let res: Response;
+  try {
+    res = await fetch("/api/facturas/leer", { method: "POST", body: cuerpo, headers: await encabezadoSesion() });
+  } catch {
+    return { ok: false, aviso: "No se pudo conectar con el servidor de la app." };
+  }
+  const json = (await res.json().catch(() => null)) as { campos?: CamposFacturaOCR; error?: string } | null;
+  if (res.ok && json?.campos) return { ok: true, campos: json.campos };
+  return { ok: false, aviso: json?.error ?? motivoPorEstado(res.status) };
 }
 
 async function leerConOCR(foto: Blob, onProgreso: (pct: number) => void): Promise<CamposFacturaOCR> {

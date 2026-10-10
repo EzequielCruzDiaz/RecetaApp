@@ -38,7 +38,7 @@ export function EscanearFactura({ lecturas, onLeida, onQuitar }: EscanearFactura
         setFase(f);
         setProgreso(pct);
       });
-      onLeida({ id: `lectura-${Date.now()}-${siguienteId++}`, foto: URL.createObjectURL(file), motor, campos });
+      onLeida({ id: `lectura-${Date.now()}-${siguienteId++}`, foto: URL.createObjectURL(file), motor, campos, avisoIA });
       setUltima({ leidos: campos.items.length, motor, avisoIA });
       setEstado("listo");
     } catch (e) {
@@ -58,7 +58,7 @@ export function EscanearFactura({ lecturas, onLeida, onQuitar }: EscanearFactura
         : estado === "listo" && ultima
           ? ultima.leidos > 0
             ? `Leí ${ultima.leidos} ${ultima.leidos === 1 ? "producto" : "productos"} ✓ Revísalos abajo antes de guardar.` +
-              (ultima.motor === "ocr" && ultima.avisoIA ? ` (Sin IA: ${ultima.avisoIA.toLowerCase()}. Revisa con más cuidado.)` : "")
+              (ultima.motor === "ocr" ? " Se leyó sin IA: revisa con más cuidado." : "")
             : "No pude leer los productos. Toma la foto de frente, con buena luz y que salga la factura entera."
           : "Toma una foto y completamos suplidor, fecha, RNC, NCF e ítems automáticamente. Es opcional.";
 
@@ -188,6 +188,11 @@ function FotoLeida({ lectura, numero, onQuitar }: { lectura: LecturaFactura; num
       <div style={{ fontSize: 12, color: colors.textMuted, ...numeric }}>
         {n} {n === 1 ? "producto" : "productos"} · {lectura.motor === "ia" ? "leída con IA" : "leída con OCR"}
       </div>
+      {lectura.motor === "ocr" && lectura.avisoIA && (
+        <div role="alert" style={{ fontSize: 12, fontWeight: 600, color: colors.accent, lineHeight: 1.35 }}>
+          No se usó la IA: {lectura.avisoIA}
+        </div>
+      )}
       {cuadre.cuadra === true && (
         <div style={{ fontSize: 12, fontWeight: 600, color: colors.positive, ...numeric }}>
           Cuadra con el {cuadre.contra} ({formatMoney(cuadre.monto!)}) ✓
