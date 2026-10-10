@@ -9,6 +9,11 @@ export interface CamposFacturaOCR {
   total?: number;
   items: FacturaItem[];
   textoCrudo: string;
+  /** Posiciones en `items` que conviene revisar (solo la lectura con IA las marca). */
+  itemsDudosos?: number[];
+  camposDudosos?: ("proveedor" | "rnc" | "ncf" | "fecha" | "total")[];
+  /** Notas cortas sobre lo que no se leía bien. */
+  dudas?: string[];
 }
 
 const RE_FECHA_DMY = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b/;

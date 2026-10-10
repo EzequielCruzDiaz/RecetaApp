@@ -2,16 +2,13 @@
 
 import { useState } from "react";
 import { ConfirmarFactura } from "@/components/ConfirmarFactura";
-import { EscanearFactura } from "@/components/EscanearFactura";
 import { ReciboFactura } from "@/components/ReciboFactura";
 import { PageTitle, SectionTitle } from "@/components/ui";
-import type { CamposFacturaOCR } from "@/lib/factura-ocr";
 import type { Factura } from "@/lib/types";
 import { useStore } from "@/components/StoreProvider";
 
 export default function FacturasPage() {
   const { facturas, inventario, addFactura, removeFactura } = useStore();
-  const [preset, setPreset] = useState<CamposFacturaOCR | undefined>();
   const [formKey, setFormKey] = useState(0);
 
   function confirmarYBorrar(f: Factura) {
@@ -31,21 +28,12 @@ export default function FacturasPage() {
       />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-        <EscanearFactura
-          onDetectado={(campos) => {
-            setPreset(campos);
-            setFormKey((k) => k + 1);
-          }}
-        />
-
         <ConfirmarFactura
           key={formKey}
           inventario={inventario}
           facturas={facturas}
-          preset={preset}
           onConfirmar={(f) => {
             addFactura(f);
-            setPreset(undefined);
             setFormKey((k) => k + 1);
           }}
         />
