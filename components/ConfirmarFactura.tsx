@@ -81,6 +81,7 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar }: Confirma
   const { proveedor, fecha, rnc, ncf } = enc;
   const [items, setItems] = useState<ItemBorrador[]>([filaVacia()]);
   const [itbis, setItbis] = useState(0);
+  const [descuento, setDescuento] = useState(0);
   const [totalManual, setTotalManual] = useState<number | null>(null);
   const [intentado, setIntentado] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -90,9 +91,9 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar }: Confirma
   useEffect(() => () => fotos.current.forEach((u) => URL.revokeObjectURL(u)), []);
 
   const subtotal = items.reduce((acc, it) => acc + it.cantidad * it.precioUnitario, 0);
-  const totalCalculado = subtotal + itbis;
+  const totalCalculado = subtotal - descuento + itbis;
   const total = totalManual ?? totalCalculado;
-  const descuadre = totalManual != null && !cuadraTotal(subtotal, itbis, totalManual);
+  const descuadre = totalManual != null && !cuadraTotal(subtotal, itbis, totalManual, descuento);
 
   const setCampo = (c: CampoEncabezado, v: string) => setEnc((prev) => ({ ...prev, [c]: v }));
 
@@ -112,6 +113,7 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar }: Confirma
     setEnc({ ...completo, fecha: completo.fecha || hoyLocal() });
     const t = totalesDe(siguientes);
     setItbis(t.itbis);
+    setDescuento(t.descuento);
     setTotalManual(t.total);
   }
 
@@ -129,6 +131,7 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar }: Confirma
     setEnc(encabezadoSin(enc, l, restantes, hoyLocal()));
     const t = totalesDe(restantes);
     setItbis(t.itbis);
+    setDescuento(t.descuento);
     setTotalManual(t.total);
   }
 
@@ -401,6 +404,14 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar }: Confirma
       >
         <span style={numeric}>Subtotal {formatMoney(subtotal)}</span>
         <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          Descuento
+          <NumberInput
+            value={descuento}
+            onChange={setDescuento}
+            style={{ ...inputStyle, width: 90, fontSize: 13, ...numeric }}
+          />
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
           ITBIS
           <NumberInput
             value={itbis}
@@ -428,8 +439,8 @@ export function ConfirmarFactura({ inventario, facturas, onConfirmar }: Confirma
 
       {descuadre && (
         <p style={{ fontSize: 12, color: colors.accent, margin: 0, textAlign: "right" }}>
-          El total no cuadra con los productos ({formatMoney(subtotal)}, o {formatMoney(totalCalculado)} con ITBIS). Revisa
-          los ítems.{" "}
+          El total no cuadra con los productos ({formatMoney(subtotal - descuento)}, o {formatMoney(totalCalculado)} con
+          ITBIS). Revisa los ítems.{" "}
           <button
             type="button"
             onClick={() => setTotalManual(null)}

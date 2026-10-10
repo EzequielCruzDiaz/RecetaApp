@@ -7,6 +7,10 @@ export interface CamposFacturaOCR {
   ncf?: string;
   itbis?: number;
   total?: number;
+  /** Suma de los importes impresa en la factura (sirve cuando el total no se ve). */
+  subtotal?: number;
+  /** Descuentos generales, aparte de los de cada línea (los del súper, por tasa de ITBIS). */
+  descuento?: number;
   items: FacturaItem[];
   textoCrudo: string;
   /** Posiciones en `items` que conviene revisar (solo la lectura con IA las marca). */

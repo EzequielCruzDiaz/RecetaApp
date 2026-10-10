@@ -14,6 +14,7 @@ import {
   type LecturaFactura,
 } from "./factura-lectura";
 import type { CamposFacturaOCR } from "./factura-ocr";
+import { NACIONAL_CORTO, NACIONAL_FOTOCOPIA } from "./factura-nacional.fixture";
 
 const item = (nombre: string, cantidad: number, precioUnitario: number): ItemBorrador => ({
   nombre,
@@ -101,7 +102,7 @@ describe("encabezado", () => {
 
 describe("totales y cuadre", () => {
   it("suma ITBIS y total de todas las facturas", () => {
-    expect(totalesDe([lectura("a", { itbis: 18, total: 118 }), lectura("b", { itbis: 9, total: 59 })])).toEqual({
+    expect(totalesDe([lectura("a", { itbis: 18, total: 118 }), lectura("b", { itbis: 9, total: 59 })])).toMatchObject({
       itbis: 27,
       total: 177,
     });
@@ -109,7 +110,7 @@ describe("totales y cuadre", () => {
 
   it("sin total en alguna factura, el total se calcula", () => {
     expect(totalesDe([lectura("a", { total: 118 }), lectura("b")]).total).toBeNull();
-    expect(totalesDe([])).toEqual({ itbis: 0, total: null });
+    expect(totalesDe([])).toEqual({ itbis: 0, descuento: 0, total: null });
   });
 
   it("cuadra con el ITBIS incluido (súper) o sumado aparte (colmado)", () => {
@@ -216,5 +217,50 @@ describe("necesitaRespaldo", () => {
     expect(necesitaRespaldo({ ...base, total: 400 })).toBe(true);
     expect(necesitaRespaldo({ items: [], textoCrudo: "" })).toBe(true);
     expect(necesitaRespaldo({ ...base, itemsDudosos: [0] })).toBe(true);
+  });
+});
+
+describe("tickets reales de Supermercado Nacional", () => {
+  it("ticket corto: 10 productos, RNC del suplidor y cuadra con el total después de descuentos", () => {
+    const c = normalizarLecturaIA(NACIONAL_CORTO);
+    expect(c.items).toHaveLength(10);
+    expect(c.rnc).toBe("101019921");
+    expect(c.items[4]).toEqual({ nombre: "PLATANO MADURO", cantidad: 3, unidad: null, precioUnitario: 20 });
+    expect(c.itemsDudosos).toEqual([]);
+    expect(cuadreLectura(c)).toMatchObject({ contra: "total", cuadra: true });
+    expect(necesitaRespaldo(c)).toBe(false);
+  });
+
+  it("sin el descuento, el ticket corto no cuadraría (y se pediría el respaldo)", () => {
+    const c = normalizarLecturaIA({ ...NACIONAL_CORTO, descuento: null });
+    expect(cuadreLectura(c).cuadra).toBe(false);
+    expect(necesitaRespaldo(c)).toBe(true);
+  });
+
+  it("fotocopia cortada: 62 productos, los pesados en libras y cuadra con el subtotal", () => {
+    const c = normalizarLecturaIA(NACIONAL_FOTOCOPIA);
+    expect(c.items).toHaveLength(62);
+    expect(c.items[4]).toEqual({ nombre: "COSTILLA AHUMA", cantidad: 0.94, unidad: "lb", precioUnitario: 178.95 });
+    expect(c.total).toBeUndefined();
+    expect(cuadreLectura(c)).toMatchObject({ contra: "subtotal", cuadra: true });
+    expect(necesitaRespaldo(c)).toBe(false);
+  });
+
+  it("si la fotocopia se lee con las líneas repetidas dos veces, no cuadra", () => {
+    const repetidas = NACIONAL_FOTOCOPIA.items.slice(23, 25);
+    const c = normalizarLecturaIA({ ...NACIONAL_FOTOCOPIA, items: [...NACIONAL_FOTOCOPIA.items, ...repetidas] });
+    expect(cuadreLectura(c).cuadra).toBe(false);
+  });
+
+  it("la compra toma el total pagado, o subtotal menos descuento si el ticket está cortado", () => {
+    const a = lectura("a", normalizarLecturaIA(NACIONAL_CORTO));
+    const b = lectura("b", normalizarLecturaIA(NACIONAL_FOTOCOPIA));
+    expect(totalesDe([a])).toEqual({ itbis: 223.81, descuento: 546.09, total: 10375.61 });
+    expect(totalesDe([a, b]).total).toBe(10375.61 + 26096.94 - 154.48);
+  });
+
+  it("con descuento, el formulario acepta el total del ticket", () => {
+    expect(cuadraTotal(10921.7, 223.81, 10375.61, 546.09)).toBe(true);
+    expect(cuadraTotal(10921.7, 223.81, 10375.61)).toBe(false);
   });
 });

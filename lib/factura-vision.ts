@@ -37,23 +37,31 @@ export interface ImagenFactura {
 const INSTRUCCIONES = `Lees fotos de facturas de compra de negocios de comida en República Dominicana (supermercados, colmados, distribuidores, mercados) para registrar la compra en el inventario.
 
 Devuelve:
-- proveedor: el negocio que EMITE la factura (nombre comercial del encabezado, ej. "Supermercados Nacional"), nunca el cliente.
-- rnc: RNC del emisor (9 dígitos, u 11 si es cédula). Ignora el RNC o cédula del cliente.
+- proveedor: el negocio que EMITE la factura (nombre comercial del encabezado, ej. "Supermercado Nacional"), nunca el cliente.
+- rnc: RNC del emisor, el que está en el encabezado junto al nombre y la dirección (9 dígitos, u 11 si es cédula). En las facturas de crédito fiscal, el "RNC:" que va debajo del NCF o e-NCF, junto a una razón social, es del CLIENTE: ignóralo.
 - ncf: comprobante fiscal: B + 10 dígitos, o e-CF E + 12 dígitos (ej. E310000012345).
-- fecha: fecha de emisión en formato AAAA-MM-DD. Las fechas dominicanas vienen día/mes/año.
+- fecha: fecha de emisión en formato AAAA-MM-DD. Las fechas dominicanas vienen día/mes/año ("30/09/26" es 2026-09-30). "Válido hasta" es el vencimiento del comprobante, no la fecha de la factura.
 - items: solo productos comprados, en el orden de la factura.
   - nombre: como está impreso, legible (sin códigos de barra ni de artículo).
-  - cantidad y unidad: si es pesado ("1.25 LB X 89.00"), cantidad 1.25 y unidad "lb". Si no dice unidad, unidad null. "2 X 45.00" es cantidad 2.
+  - cantidad y unidad: si es pesado ("1.25 LB X 89.00"), cantidad 1.25 y unidad "lb". "2 X 45.00" es cantidad 2. Si no dice unidad, unidad null, salvo una cantidad con decimales en un supermercado (producto pesado): es en libras, unidad "lb".
   - precioUnitario: lo que se pagó por unidad, ya con el descuento de esa línea si lo hay.
   - importe: total de la línea tal como está impreso.
   - dudoso: true si no se lee bien el nombre, la cantidad o el precio.
-- itbis: ITBIS total si aparece. total: total a pagar.
+- subtotal: la suma de los importes impresa ("SUBTOTAL"), o null.
+- descuento: la suma de los descuentos generales (líneas "DESCUENTO" debajo del subtotal), en positivo, o null.
+- itbis: ITBIS total si aparece. total: total a pagar, o null si no se ve.
 - camposDudosos: los campos del encabezado que no se leen con seguridad.
 - dudas: notas cortas en español (máximo 3) sobre lo que no se pudo leer, para que la persona lo revise. Vacío si todo se lee bien.
 
-No son productos: subtotales, ITBIS, descuentos generales, propinas, formas de pago (efectivo, tarjeta, VISA, MASTERCARD, cambio, devuelta), "usted ahorró" / "hubiese ahorrado", puntos o lealtad, ni datos del cajero o la caja.
+Tickets de supermercado (Nacional, Jumbo, Bravo, Sirena y parecidos):
+- Columnas DESCRIPCION, ITBIS y VALOR: VALOR es el importe de la línea y ya trae el ITBIS; la columna ITBIS es solo informativa. La letra al final (C, D, E…) es la tasa de ITBIS, no parte del precio.
+- La cantidad y el precio van en una línea propia ENCIMA de la descripción ("3  20.00" y debajo "PLATANO MADURO  0.00  60.00 E" es cantidad 3 a 20.00). Esa línea pertenece al producto de abajo, no al de arriba. Un producto sin esa línea es cantidad 1 y su precio es el VALOR.
+- Si el ticket está fotocopiado en dos columnas, lee la columna izquierda completa y luego la derecha. Las últimas líneas de la izquierda suelen repetirse arriba de la derecha: cuéntalas una sola vez.
+- La suma de VALOR da el SUBTOTAL, y TOTAL A PAGAR = SUBTOTAL − DESCUENTOS.
+
+No son productos: subtotales, ITBIS, descuentos generales, propinas, formas de pago (efectivo, tarjeta, VISA, MASTERCARD, cambio, devuelta), "usted ahorró" / "hubiese ahorrado", "items con C gravados…", puntos o lealtad, notas escritas a mano, ni datos del cajero o la caja.
 Si llegan varias imágenes, son franjas de la MISMA factura de arriba hacia abajo y se solapan un poco: la línea que aparece al final de una franja y al principio de la siguiente es una sola, no la cuentes dos veces.
-Antes de responder, comprueba que la suma de los importes dé el total (con el ITBIS incluido o sumado aparte). Si no cuadra, vuelve a mirar las líneas y marca como dudoso lo que no puedas confirmar.
+Antes de responder, comprueba que la suma de los importes dé el subtotal impreso y el total (con el ITBIS incluido o sumado aparte, menos descuentos). Si no cuadra, vuelve a mirar las líneas, sobre todo las repetidas y las de cantidad, y marca como dudoso lo que no puedas confirmar.
 Nunca inventes: si un dato no se ve, devuelve null. Si la imagen no es una factura, devuelve items vacío y explícalo en dudas.`;
 
 export class ErrorLectura extends Error {

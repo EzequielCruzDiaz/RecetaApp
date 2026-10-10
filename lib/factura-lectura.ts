@@ -79,12 +79,21 @@ export function encabezadoSin(
   return sig;
 }
 
-/** ITBIS y total de la compra: la suma de lo leído en cada factura. */
-export function totalesDe(lecturas: LecturaFactura[]): { itbis: number; total: number | null } {
+/** Total pagado de una factura; si no se ve, subtotal menos descuentos. */
+function totalDe(c: CamposFacturaOCR): number | undefined {
+  if (c.total != null) return c.total;
+  if (c.subtotal != null) return c.subtotal - (c.descuento ?? 0);
+  return undefined;
+}
+
+/** ITBIS, descuento y total de la compra: la suma de lo leído en cada factura. */
+export function totalesDe(lecturas: LecturaFactura[]): { itbis: number; descuento: number; total: number | null } {
   const itbis = lecturas.reduce((acc, l) => acc + (l.campos.itbis ?? 0), 0);
-  const todosConTotal = lecturas.length > 0 && lecturas.every((l) => l.campos.total != null);
-  const total = todosConTotal ? lecturas.reduce((acc, l) => acc + l.campos.total!, 0) : null;
-  return { itbis: redondear(itbis), total: total == null ? null : redondear(total) };
+  const descuento = lecturas.reduce((acc, l) => acc + (l.campos.descuento ?? 0), 0);
+  const totales = lecturas.map((l) => totalDe(l.campos));
+  const total =
+    lecturas.length > 0 && totales.every((t) => t != null) ? totales.reduce((a, t) => a! + t!, 0)! : null;
+  return { itbis: redondear(itbis), descuento: redondear(descuento), total: total == null ? null : redondear(total) };
 }
 
 const redondear = (n: number) => Math.round(n * 100) / 100;
@@ -94,25 +103,35 @@ const tolerancia = (total: number) => Math.max(1, Math.abs(total) * 0.005);
 
 /**
  * ¿El total cuadra con los productos? En el súper los precios ya traen el
- * ITBIS (total = suma); en el colmado o el distribuidor se suma aparte
- * (total = suma + ITBIS). Cualquiera de las dos vale.
+ * ITBIS (total = suma − descuentos); en el colmado o el distribuidor se
+ * suma aparte (total = suma + ITBIS − descuentos). Cualquiera de las dos vale.
  */
-export function cuadraTotal(subtotal: number, itbis: number, total: number): boolean {
+export function cuadraTotal(subtotal: number, itbis: number, total: number, descuento = 0): boolean {
   const t = tolerancia(total);
-  return Math.abs(total - subtotal) <= t || Math.abs(total - (subtotal + itbis)) <= t;
+  const neto = subtotal - descuento;
+  return Math.abs(total - neto) <= t || Math.abs(total - (neto + itbis)) <= t;
 }
 
 export interface Cuadre {
   suma: number;
-  total?: number;
-  /** `null` si la factura no trae total legible. */
+  /** Contra qué se comparó: el total a pagar o, si no se ve, el subtotal impreso. */
+  contra?: "total" | "subtotal";
+  monto?: number;
+  /** `null` si la factura no trae total ni subtotal legible. */
   cuadra: boolean | null;
 }
 
 export function cuadreLectura(campos: CamposFacturaOCR): Cuadre {
   const suma = redondear(campos.items.reduce((acc, it) => acc + it.cantidad * it.precioUnitario, 0));
-  if (campos.total == null || !(campos.total > 0)) return { suma, cuadra: null };
-  return { suma, total: campos.total, cuadra: cuadraTotal(suma, campos.itbis ?? 0, campos.total) };
+  if (campos.total != null && campos.total > 0) {
+    const cuadra = cuadraTotal(suma, campos.itbis ?? 0, campos.total, campos.descuento ?? 0);
+    return { suma, contra: "total", monto: campos.total, cuadra };
+  }
+  // Ticket cortado o fotocopiado sin el final: el subtotal es la suma de los importes.
+  if (campos.subtotal != null && campos.subtotal > 0) {
+    return { suma, contra: "subtotal", monto: campos.subtotal, cuadra: cuadraTotal(suma, 0, campos.subtotal) };
+  }
+  return { suma, cuadra: null };
 }
 
 /**
@@ -142,7 +161,19 @@ const numero = { anyOf: [{ type: "number" }, nulo] } as const;
 export const ESQUEMA_LECTURA = {
   type: "object",
   additionalProperties: false,
-  required: ["proveedor", "rnc", "ncf", "fecha", "items", "itbis", "total", "camposDudosos", "dudas"],
+  required: [
+    "proveedor",
+    "rnc",
+    "ncf",
+    "fecha",
+    "items",
+    "subtotal",
+    "descuento",
+    "itbis",
+    "total",
+    "camposDudosos",
+    "dudas",
+  ],
   properties: {
     proveedor: texto,
     rnc: texto,
@@ -164,6 +195,8 @@ export const ESQUEMA_LECTURA = {
         },
       },
     },
+    subtotal: numero,
+    descuento: numero,
     itbis: numero,
     total: numero,
     camposDudosos: { type: "array", items: { type: "string", enum: ["proveedor", "rnc", "ncf", "fecha", "total"] } },
@@ -228,6 +261,9 @@ export function normalizarLecturaIA(raw: unknown): CamposFacturaOCR {
     rnc: rncDigitos.length === 9 || rncDigitos.length === 11 ? rncDigitos : undefined,
     ncf: /^(B\d{10}|E\d{12})$/.test(ncf) ? ncf : undefined,
     fecha: fechaValida(r.fecha),
+    subtotal: esNumero(r.subtotal) && r.subtotal > 0 ? redondear(r.subtotal) : undefined,
+    // Algunos tickets imprimen el descuento en negativo.
+    descuento: esNumero(r.descuento) && r.descuento !== 0 ? redondear(Math.abs(r.descuento)) : undefined,
     itbis: esNumero(r.itbis) && r.itbis >= 0 ? redondear(r.itbis) : undefined,
     total: esNumero(r.total) && r.total > 0 ? redondear(r.total) : undefined,
     items,
