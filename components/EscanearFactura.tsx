@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { parseFacturaTexto, type CamposFacturaOCR } from "@/lib/factura-ocr";
-import { TESSERACT_LANG, TESSERACT_OPTIONS } from "@/lib/ocr-config";
+import { combinarLecturas, parseFacturaTexto, type CamposFacturaOCR } from "@/lib/factura-ocr";
+import { PASADAS_OCR, TESSERACT_LANG, TESSERACT_OPTIONS } from "@/lib/ocr-config";
+import { prepararFotoFactura } from "@/lib/ocr-imagen";
 import { colors, font, radius, shadow } from "@/lib/tokens";
 import { Card, Mosaico } from "./ui";
 
@@ -24,6 +25,7 @@ export function EscanearFactura({ onDetectado }: EscanearFacturaProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [leidos, setLeidos] = useState(0);
 
   async function procesar(file: File) {
     setEstado("procesando");
@@ -35,26 +37,47 @@ export function EscanearFactura({ onDetectado }: EscanearFacturaProps) {
       return URL.createObjectURL(file);
     });
 
+    let worker: import("tesseract.js").Worker | undefined;
     try {
-      const { default: Tesseract } = await import("tesseract.js");
-      const { data } = await Tesseract.recognize(file, TESSERACT_LANG, {
+      const { createWorker } = await import("tesseract.js");
+      // Sin preparar, la sombra y el papel desteñido de una foto de celular
+      // se comen la columna de montos. Si el navegador no puede, va la foto tal cual.
+      const imagen = await prepararFotoFactura(file).catch(() => file);
+      let pasada = 0;
+      worker = await createWorker(TESSERACT_LANG, 1, {
         ...TESSERACT_OPTIONS,
         logger: (m: { status: string; progress: number }) => {
-          if (m.status === "recognizing text") setProgreso(Math.round(m.progress * 100));
+          if (m.status === "recognizing text") {
+            setProgreso(Math.round(((pasada + m.progress) / PASADAS_OCR.length) * 100));
+          }
         },
       });
-      setTexto(data.text);
-      onDetectado(parseFacturaTexto(data.text));
+      const lecturas: CamposFacturaOCR[] = [];
+      for (const parametros of PASADAS_OCR) {
+        await worker.setParameters(parametros as unknown as Record<string, string>);
+        const { data } = await worker.recognize(imagen);
+        lecturas.push(parseFacturaTexto(data.text));
+        pasada++;
+      }
+      const [porFilas, sueltos] = lecturas;
+      setTexto(porFilas.textoCrudo);
+      const campos = combinarLecturas(porFilas, sueltos);
+      setLeidos(campos.items.length);
+      onDetectado(campos);
       setEstado("listo");
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo leer la imagen.");
       setEstado("error");
+    } finally {
+      await worker?.terminate();
     }
   }
 
   const mensaje =
     estado === "listo"
-      ? "Campos precargados ✓ Revísalos abajo antes de guardar."
+      ? leidos > 0
+        ? `Leí ${leidos} ${leidos === 1 ? "producto" : "productos"} ✓ Revísalos abajo antes de guardar.`
+        : "No pude leer los productos. Toma la foto de frente, con buena luz y que salga la factura entera."
       : estado === "procesando"
         ? `Leyendo la imagen con OCR… ${progreso}%`
         : estado === "error"

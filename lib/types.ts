@@ -51,6 +51,8 @@ export interface FacturaItem {
   unidad: Unit | null;
   precioUnitario: number;
   ingredientId?: string;
+  /** Lo que sumó al stock, ya en la unidad de compra del ingrediente. */
+  cantidadStock?: number;
 }
 
 export interface Factura {

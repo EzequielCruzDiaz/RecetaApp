@@ -47,6 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           color: colors.text,
           fontFamily: font.family,
           "--sidebar-bg": colors.sidebarBg,
+          "--text-faint": colors.textFaint,
         } as React.CSSProperties
       }
     >

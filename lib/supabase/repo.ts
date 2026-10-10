@@ -63,6 +63,7 @@ function aFacturaItem(r: FacturaItemRow): FacturaItem {
     unidad: (r.unidad as Unit | null) ?? null,
     precioUnitario: Number(r.precio_unitario),
     ingredientId: r.ingredient_id ?? undefined,
+    cantidadStock: r.cantidad_stock === null ? undefined : Number(r.cantidad_stock),
   };
 }
 
@@ -198,6 +199,7 @@ export async function crearFactura(b: BorradorFactura): Promise<void> {
       unidad: it.unidad,
       precio_unitario: it.precioUnitario,
       ingredient_id: it.ingredientId ?? null,
+      cantidad_stock: it.cantidadStock ?? null,
     })) as unknown as Json,
   });
   if (error) throw error;

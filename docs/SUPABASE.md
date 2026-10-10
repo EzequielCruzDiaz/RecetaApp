@@ -19,9 +19,9 @@ No hace falta nada previo — ni tarjeta de crédito para el plan Free.
    facturación/equipo):
    - **Name**: tu nombre o el del negocio que vende Cuadre (ej. `tu-nombre` o
      `cuadre-apps`) — es interno, no lo ve el cliente final.
-   - **Type**: *Personal* alcanza si sos vos solo administrando.
+   - **Type**: *Personal* alcanza si eres tú solo quien administra.
    - **Plan**: *Free*.
-3. Con la organización creada, seguís directo al paso 1 — **un proyecto por
+3. Con la organización creada, sigues directo al paso 1 — **un proyecto por
    cliente dentro de esa misma organización** (no hace falta una org nueva
    por cliente).
 

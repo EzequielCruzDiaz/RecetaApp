@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { colors, font } from "@/lib/tokens";
-import { Eyebrow, inputStyle } from "./ui";
+import { Eyebrow, MensajeCampo, conError, inputStyle } from "./ui";
 
 interface EncabezadoResumenProps {
   nombreNegocio: string;
@@ -23,10 +23,16 @@ function fechaLarga(d: Date): string {
 export function EncabezadoResumen({ nombreNegocio, onGuardarNombre }: EncabezadoResumenProps) {
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState(nombreNegocio);
+  const [error, setError] = useState<string>();
   const ahora = new Date();
 
   function guardar(e: React.FormEvent) {
     e.preventDefault();
+    if (!valor.trim()) {
+      setError("Escribe el nombre de tu cocina.");
+      return;
+    }
+    setError(undefined);
     onGuardarNombre(valor.trim());
     setEditando(false);
   }
@@ -42,9 +48,13 @@ export function EncabezadoResumen({ nombreNegocio, onGuardarNombre }: Encabezado
           <input
             autoFocus
             value={valor}
-            onChange={(e) => setValor(e.target.value)}
+            onChange={(e) => {
+              setValor(e.target.value);
+              if (e.target.value.trim()) setError(undefined);
+            }}
             placeholder="Nombre de tu cocina"
-            style={{ ...inputStyle, width: 300, maxWidth: "100%", fontSize: 18, fontFamily: font.display }}
+            aria-invalid={error ? true : undefined}
+            style={conError({ ...inputStyle, width: 300, maxWidth: "100%", fontSize: 18, fontFamily: font.display }, error)}
           />
           <button
             type="submit"
@@ -59,6 +69,11 @@ export function EncabezadoResumen({ nombreNegocio, onGuardarNombre }: Encabezado
           >
             Cancelar
           </button>
+          {error && (
+            <div style={{ flexBasis: "100%" }}>
+              <MensajeCampo>{error}</MensajeCampo>
+            </div>
+          )}
         </form>
       ) : (
         <h1

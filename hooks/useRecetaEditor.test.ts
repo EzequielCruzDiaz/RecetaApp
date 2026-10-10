@@ -193,8 +193,15 @@ describe("odometer: digitosOdometro", () => {
     expect(digitosOdometro(0).entero.map((d) => d.tenue)).toEqual([true, true, true, false]);
   });
 
-  it("limita valores fuera de rango en vez de romper", () => {
+  it("negativos y NaN se muestran como 0.00", () => {
     expect(digitosOdometro(-5).entero.map((d) => d.digito)).toEqual([0, 0, 0, 0]);
-    expect(digitosOdometro(1e9).entero.map((d) => d.digito)).toEqual([9, 9, 9, 9]);
+    expect(digitosOdometro(NaN).entero.map((d) => d.digito)).toEqual([0, 0, 0, 0]);
+  });
+
+  it("montos de 5 cifras o más agregan columnas en vez de recortarse a 9999.99", () => {
+    const o = digitosOdometro(12500.75);
+    expect(o.entero.map((d) => d.digito)).toEqual([1, 2, 5, 0, 0]);
+    expect(o.decimal.map((d) => d.digito)).toEqual([7, 5]);
+    expect(o.entero.every((d) => !d.tenue)).toBe(true);
   });
 });

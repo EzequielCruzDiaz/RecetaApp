@@ -1,17 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import type { BorradorInventoryIngredient, PieceUnit, Unit, UnitCategory } from "@/lib/types";
+import { useRef, useState } from "react";
+import type { BorradorInventoryIngredient, InventoryIngredient, PieceUnit, Unit, UnitCategory } from "@/lib/types";
 import { colors, numeric } from "@/lib/tokens";
-import { FormHeader, NumberInput, Select, buttonStyle, formPanelStyle, inputStyle, labelStyle } from "./ui";
+import { sinErrores, validarIngrediente } from "@/lib/validacion";
+import {
+  FormHeader,
+  MensajeCampo,
+  NumberInput,
+  Select,
+  buttonStyle,
+  conError,
+  formPanelStyle,
+  inputStyle,
+  labelStyle,
+} from "./ui";
 
 const PIEZAS: PieceUnit[] = ["unidad", "docena", "diente", "atado", "lata", "paquete", "saco", "caja"];
 
 interface FormularioInventarioProps {
+  inventario: InventoryIngredient[];
   onSubmit: (ingrediente: BorradorInventoryIngredient) => void;
 }
 
-export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
+export function FormularioInventario({ inventario, onSubmit }: FormularioInventarioProps) {
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState<UnitCategory>("peso");
   const [unidadCompra, setUnidadCompra] = useState<Unit>("kg");
@@ -22,21 +34,30 @@ export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
   const [unidadPieza, setUnidadPieza] = useState<PieceUnit>("unidad");
   const [equivCantidad, setEquivCantidad] = useState(0);
   const [unidadBase, setUnidadBase] = useState<"g" | "kg" | "ml" | "L">("g");
+  const [intentado, setIntentado] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const borrador: BorradorInventoryIngredient = {
+    nombre: nombre.trim(),
+    categoria,
+    unidadCompra,
+    precioCompra,
+    stock,
+    stockMinimo,
+    equivalencia: conEquivalencia ? { unidadPieza, cantidad: equivCantidad, unidadBase } : undefined,
+  };
+  const errores = validarIngrediente(borrador, inventario);
+  const ver = intentado ? errores : {};
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!nombre.trim()) return;
-    onSubmit({
-      nombre: nombre.trim(),
-      categoria,
-      unidadCompra,
-      precioCompra,
-      stock,
-      stockMinimo,
-      equivalencia: conEquivalencia
-        ? { unidadPieza, cantidad: equivCantidad, unidadBase }
-        : undefined,
-    });
+    if (!sinErrores(errores)) {
+      setIntentado(true);
+      requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']")?.focus());
+      return;
+    }
+    onSubmit(borrador);
+    setIntentado(false);
     setNombre("");
     setPrecioCompra(0);
     setStock(0);
@@ -46,10 +67,7 @@ export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
   }
 
   return (
-    <form
-      onSubmit={submit}
-      style={formPanelStyle}
-    >
+    <form ref={formRef} onSubmit={submit} noValidate style={formPanelStyle}>
       <FormHeader title="Agregar ingrediente" hint="Lo que compras, a cómo lo compras y cuánto tienes en el almacén." />
 
       <label style={labelStyle}>
@@ -58,8 +76,10 @@ export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
           placeholder="Plátano verde"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
-          style={inputStyle}
+          aria-invalid={ver.nombre ? true : undefined}
+          style={conError(inputStyle, ver.nombre)}
         />
+        <MensajeCampo>{ver.nombre}</MensajeCampo>
       </label>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
@@ -98,8 +118,10 @@ export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
           <NumberInput
             value={precioCompra}
             onChange={setPrecioCompra}
-            style={{ ...inputStyle, ...numeric }}
+            aria-invalid={ver.precioCompra ? true : undefined}
+            style={conError({ ...inputStyle, ...numeric }, ver.precioCompra)}
           />
+          <MensajeCampo>{ver.precioCompra}</MensajeCampo>
         </label>
         <label style={labelStyle}>
           Stock actual
@@ -146,7 +168,9 @@ export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
           <NumberInput
             value={equivCantidad}
             onChange={setEquivCantidad}
-            style={{ ...inputStyle, width: 90, ...numeric }}
+            aria-label="Cantidad de la equivalencia"
+            aria-invalid={ver.equivalencia ? true : undefined}
+            style={conError({ ...inputStyle, width: 90, ...numeric }, ver.equivalencia)}
           />
           <Select
             value={unidadBase}
@@ -159,6 +183,11 @@ export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
             ]}
             style={{ width: 90 }}
           />
+          {ver.equivalencia && (
+            <div style={{ flexBasis: "100%" }}>
+              <MensajeCampo>{ver.equivalencia}</MensajeCampo>
+            </div>
+          )}
         </div>
       )}
 

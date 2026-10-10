@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { InventoryIngredient, Receta } from "@/lib/types";
 import { colors, font, numeric, radius } from "@/lib/tokens";
 import { etiquetaPrecio } from "@/lib/units";
 import { TIEMPOS, useRecetaEditor, type EstadoEditor, type ItemResumen } from "@/hooks/useRecetaEditor";
 import type { Odometro } from "@/lib/odometer";
+import { sinErrores, validarReceta } from "@/lib/validacion";
 import {
   FormHeader,
+  MensajeCampo,
   NumberInput,
   Select,
   buttonStyle,
+  conError,
   formPanelStyle,
   formatMoney,
   inputStyle,
@@ -20,6 +23,8 @@ import {
 
 interface RecetaEditorProps {
   inventario: InventoryIngredient[];
+  /** Para avisar si el nombre ya existe. */
+  recetas: Receta[];
   recetaInicial?: Receta;
   onGuardar: (receta: Receta) => void;
 }
@@ -86,6 +91,7 @@ function Odometro({ valor, size = 20, color }: { valor: Odometro; size?: number;
         display: "inline-flex",
       }}
     >
+      <span>RD$</span>
       {valor.entero.map((d, i) => (
         <DigitoColumna key={`e${i}`} {...d} />
       ))}
@@ -110,9 +116,12 @@ function FilaIngrediente({
   onUnidad,
   onAlGusto,
   onQuitar,
+  aviso,
 }: {
   item: ItemResumen;
   esNuevo: boolean;
+  /** Lo que falta para poder guardar (cantidad en 0, unidades que no convierten). */
+  aviso?: string;
   onIncrementar: () => void;
   onDecrementar: () => void;
   onCantidad: (v: number) => void;
@@ -138,8 +147,8 @@ function FilaIngrediente({
     >
       <div
         style={{
-          border: `1px solid ${item.error ? colors.accent : colors.border}`,
-          borderLeft: `4px solid ${item.error ? colors.accent : colors.mango}`,
+          border: `1px solid ${item.error || aviso ? colors.accent : colors.border}`,
+          borderLeft: `4px solid ${item.error || aviso ? colors.accent : colors.mango}`,
           borderRadius: radius.md,
           padding: "14px 16px",
           background: colors.surface,
@@ -228,7 +237,9 @@ function FilaIngrediente({
               <NumberInput
                 value={item.cantidad}
                 onChange={onCantidad}
-                style={{ ...inputStyle, ...numeric, width: 80, textAlign: "center" }}
+                aria-label={`Cantidad de ${item.nombre}`}
+                aria-invalid={aviso && !item.error ? true : undefined}
+                style={conError({ ...inputStyle, ...numeric, width: 80, textAlign: "center" }, aviso && !item.error ? aviso : undefined)}
               />
               <button type="button" onClick={onIncrementar} style={pasoBotonStyle}>
                 +
@@ -239,8 +250,14 @@ function FilaIngrediente({
               </span>
             </div>
 
-            {item.error && (
+            {item.error ? (
               <p style={{ fontSize: 11.5, color: colors.accent, margin: "8px 0 0" }}>{item.error}</p>
+            ) : (
+              aviso && (
+                <p style={{ margin: "8px 0 0" }}>
+                  <MensajeCampo>{aviso}</MensajeCampo>
+                </p>
+              )
             )}
           </>
         )}
@@ -266,7 +283,7 @@ const pasoBotonStyle: React.CSSProperties = {
 /* Editor                                                               */
 /* ------------------------------------------------------------------ */
 
-export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEditorProps) {
+export function RecetaEditor({ inventario, recetas, recetaInicial, onGuardar }: RecetaEditorProps) {
   const [categoria, setCategoria] = useState(recetaInicial?.categoria ?? "");
   const [unidadRendimiento, setUnidadRendimiento] = useState(
     recetaInicial?.unidadRendimiento ?? "porciones",
@@ -287,13 +304,29 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
     },
   });
 
+  const [intentado, setIntentado] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const activos = resumen.items.filter((it) => it.estado === "activo");
+  const errores = validarReceta(
+    { nombre: estado.nombre, porciones: estado.porciones, items: activos },
+    recetas,
+    recetaInicial?.id,
+  );
+  const ver = intentado ? errores : { porItem: {} as Record<string, string> };
+
   function guardar() {
-    if (estado.nombre.trim() === "" || resumen.items.length === 0) return;
+    if (!sinErrores(errores)) {
+      setIntentado(true);
+      requestAnimationFrame(() =>
+        panelRef.current?.querySelector<HTMLElement>("[aria-invalid='true'], [data-invalido='true']")?.focus(),
+      );
+      return;
+    }
     acciones.guardar();
   }
 
   return (
-    <div style={formPanelStyle}>
+    <div ref={panelRef} style={formPanelStyle}>
       <FormHeader
         title={recetaInicial ? "Editar receta" : "Nueva receta"}
         hint={
@@ -310,8 +343,10 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
             value={estado.nombre}
             onChange={(e) => acciones.setNombre(e.target.value)}
             placeholder="Moro de guandules"
-            style={inputStyle}
+            aria-invalid={ver.nombre ? true : undefined}
+            style={conError(inputStyle, ver.nombre)}
           />
+          <MensajeCampo>{ver.nombre}</MensajeCampo>
         </label>
         <label style={labelStyle}>
           Categoría
@@ -328,8 +363,10 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
             min={1}
             value={estado.porciones}
             onChange={acciones.setPorciones}
-            style={{ ...inputStyle, ...numeric }}
+            aria-invalid={ver.porciones ? true : undefined}
+            style={conError({ ...inputStyle, ...numeric }, ver.porciones)}
           />
+          <MensajeCampo>{ver.porciones}</MensajeCampo>
         </label>
         <label style={labelStyle}>
           Unidad de rendimiento
@@ -367,6 +404,7 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
             onUnidad={(u) => acciones.setUnidad(item.ingredientId, u)}
             onAlGusto={(v) => acciones.setAlGusto(item.ingredientId, v)}
             onQuitar={() => acciones.quitar(item.ingredientId)}
+            aviso={ver.porItem[item.ingredientId]}
           />
         ))}
 
@@ -376,9 +414,15 @@ export function RecetaEditor({ inventario, recetaInicial, onGuardar }: RecetaEdi
             onChange={(v) => v && acciones.agregar(v)}
             placeholder="+ Agregar ingrediente"
             options={resumen.disponibles.map((i) => ({ value: i.id, label: `${i.nombre} — ${etiquetaPrecio(i)}` }))}
+            error={ver.ingredientes}
             style={{ marginTop: 6 }}
           />
         )}
+        <MensajeCampo>
+          {ver.ingredientes && resumen.disponibles.length === 0
+            ? "Primero agrega ingredientes en Inventario."
+            : ver.ingredientes}
+        </MensajeCampo>
       </div>
 
       <div

@@ -138,6 +138,7 @@ export interface Database {
           unidad: string | null;
           precio_unitario: number;
           ingredient_id: string | null;
+          cantidad_stock: number | null;
         };
         Insert: {
           id?: string;
@@ -147,6 +148,7 @@ export interface Database {
           unidad?: string | null;
           precio_unitario?: number;
           ingredient_id?: string | null;
+          cantidad_stock?: number | null;
         };
         Update: {
           nombre?: string;
@@ -154,6 +156,7 @@ export interface Database {
           unidad?: string | null;
           precio_unitario?: number;
           ingredient_id?: string | null;
+          cantidad_stock?: number | null;
         };
         Relationships: [];
       };

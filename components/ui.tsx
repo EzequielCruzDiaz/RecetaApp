@@ -432,6 +432,24 @@ export const inputStyle: React.CSSProperties = {
   width: "100%",
 };
 
+/** Borde de alerta para un campo con error. */
+export function conError(style: React.CSSProperties, error?: string): React.CSSProperties {
+  return error ? { ...style, borderColor: colors.accent, boxShadow: `0 0 0 3px ${colors.accent}1A` } : style;
+}
+
+/** Mensaje corto debajo de un campo que no se puede guardar así. */
+export function MensajeCampo({ children }: { children?: React.ReactNode }) {
+  if (!children) return null;
+  return (
+    <span
+      role="alert"
+      style={{ fontSize: 11.5, fontWeight: 600, color: colors.accent, lineHeight: 1.35, textTransform: "none", letterSpacing: 0 }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export const buttonStyle: React.CSSProperties = {
   fontSize: 14,
   fontWeight: 800,
@@ -579,6 +597,8 @@ export function Select({
   placeholder,
   disabled,
   style,
+  error,
+  ariaLabel,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -586,6 +606,9 @@ export function Select({
   placeholder?: string;
   disabled?: boolean;
   style?: React.CSSProperties;
+  /** Si viene, el botón se marca como inválido. */
+  error?: string;
+  ariaLabel?: string;
 }) {
   const [abierto, setAbierto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -627,8 +650,10 @@ export function Select({
         onClick={() => setAbierto((a) => !a)}
         aria-haspopup="listbox"
         aria-expanded={abierto}
+        data-invalido={error ? "true" : undefined}
+        aria-label={ariaLabel}
         style={{
-          ...inputStyle,
+          ...conError(inputStyle, error),
           width: "100%",
           display: "flex",
           alignItems: "center",
