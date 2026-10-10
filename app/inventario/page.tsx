@@ -50,7 +50,7 @@ export default function InventarioPage() {
           />
         )}
         <div id="form-inventario" style={{ scrollMarginTop: 90 }}>
-          <FormularioInventario onSubmit={addIngrediente} />
+          <FormularioInventario inventario={inventario} onSubmit={addIngrediente} />
         </div>
       </div>
     </>

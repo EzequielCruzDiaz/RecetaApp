@@ -14,6 +14,7 @@ function irA(id: string) {
 export default function RecetasPage() {
   const { recetas, inventario, addReceta, removeReceta } = useStore();
   const [escalarId, setEscalarId] = useState<string | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
 
   const escalar = recetas.find((r) => r.id === escalarId) ?? null;
   const vacio = recetas.length === 0;
@@ -83,7 +84,15 @@ export default function RecetasPage() {
         )}
 
         <div id="form-receta" style={{ scrollMarginTop: 90 }}>
-          <RecetaEditor inventario={inventario} onGuardar={addReceta} />
+          <RecetaEditor
+            key={editorKey}
+            inventario={inventario}
+            recetas={recetas}
+            onGuardar={(r) => {
+              addReceta(r);
+              setEditorKey((k) => k + 1);
+            }}
+          />
         </div>
       </div>
     </>
