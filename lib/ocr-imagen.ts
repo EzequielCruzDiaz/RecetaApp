@@ -95,22 +95,81 @@ export async function prepararFotoFactura(archivo: Blob): Promise<HTMLCanvasElem
 }
 
 /**
- * En el navegador: foto lista para subir al servidor. Una foto de celular
- * pesa 3–6 MB; a `lado` píxeles en JPEG queda en unos cientos de KB y el
- * texto de un recibo se sigue leyendo.
+ * Estira el contraste: el 1 % más oscuro pasa a negro y el 1 % más claro a
+ * blanco. El papel térmico desteñido sale gris sobre gris; así la tinta se
+ * separa del fondo sin perder los grises, que el modelo de visión sí usa.
  */
-export async function reducirFoto(archivo: Blob, lado = 2000, calidad = 0.85): Promise<Blob> {
+export function estirarContraste(gris: Uint8ClampedArray, recorte = 0.01): Uint8ClampedArray {
+  const hist = new Uint32Array(256);
+  for (const v of gris) hist[v]++;
+  const limite = Math.floor(gris.length * recorte);
+  let bajo = 0;
+  for (let acc = 0; bajo < 255 && acc + hist[bajo] <= limite; bajo++) acc += hist[bajo];
+  let alto = 255;
+  for (let acc = 0; alto > 0 && acc + hist[alto] <= limite; alto--) acc += hist[alto];
+  if (alto - bajo < 16) return gris;
+  const salida = new Uint8ClampedArray(gris.length);
+  const escala = 255 / (alto - bajo);
+  for (let i = 0; i < gris.length; i++) salida[i] = (gris[i] - bajo) * escala;
+  return salida;
+}
+
+/** Lado mayor de cada imagen que se manda al modelo: el que todos los modelos leen sin achicarla. */
+export const LADO_IA = 1568;
+
+/**
+ * Franjas en que se parte un ticket largo. Un recibo de súper mide 6–8 veces
+ * su ancho: entero, el modelo lo achica y la letra queda ilegible. En
+ * franjas cada una conserva el ancho completo. Se solapan un poco para no
+ * cortar una línea por la mitad.
+ */
+export function franjasFactura(
+  ancho: number,
+  alto: number,
+  maxRelacion = 2.2,
+  maxFranjas = 3,
+  solape = 0.04,
+): { y: number; alto: number }[] {
+  const n = Math.min(maxFranjas, Math.max(1, Math.ceil(alto / (ancho * maxRelacion))));
+  if (n === 1) return [{ y: 0, alto }];
+  const paso = alto / n;
+  const extra = Math.round(alto * solape);
+  return Array.from({ length: n }, (_, i) => {
+    const y = Math.max(0, Math.round(i * paso) - extra);
+    const fin = Math.min(alto, Math.round((i + 1) * paso) + extra);
+    return { y, alto: fin - y };
+  });
+}
+
+/**
+ * En el navegador: la foto lista para el modelo de visión, en grises con
+ * contraste estirado, en JPEG y partida en franjas si es un ticket largo.
+ */
+export async function fotoParaIA(archivo: Blob, calidad = 0.85): Promise<Blob[]> {
   const bitmap = await createImageBitmap(archivo, { imageOrientation: "from-image" });
-  const escala = Math.min(1, lado / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(bitmap.width * escala));
-  canvas.height = Math.max(1, Math.round(bitmap.height * escala));
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Este navegador no deja procesar la imagen.");
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const franjas = franjasFactura(bitmap.width, bitmap.height);
+  const piezas: Blob[] = [];
+  for (const f of franjas) {
+    const escala = Math.min(1, LADO_IA / Math.max(bitmap.width, f.alto));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * escala));
+    canvas.height = Math.max(1, Math.round(f.alto * escala));
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) throw new Error("Este navegador no deja procesar la imagen.");
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(bitmap, 0, f.y, bitmap.width, f.alto, 0, 0, canvas.width, canvas.height);
+    const datos = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const gris = estirarContraste(aGrises(datos.data, canvas.width, canvas.height));
+    for (let i = 0, p = 0; i < gris.length; i++, p += 4) {
+      datos.data[p] = datos.data[p + 1] = datos.data[p + 2] = gris[i];
+    }
+    ctx.putImageData(datos, 0, 0);
+    piezas.push(
+      await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("No se pudo comprimir la foto."))), "image/jpeg", calidad),
+      ),
+    );
+  }
   bitmap.close();
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("No se pudo comprimir la foto."))), "image/jpeg", calidad),
-  );
+  return piezas;
 }
