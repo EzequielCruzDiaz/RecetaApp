@@ -1,7 +1,7 @@
 "use client";
 
-import { InventarioForm } from "@/components/InventarioForm";
-import { InventarioList } from "@/components/InventarioList";
+import { FormularioInventario } from "@/components/FormularioInventario";
+import { ListaInventario } from "@/components/ListaInventario";
 import { EmptyState, PageTitle, buttonStyle } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
 
@@ -43,14 +43,14 @@ export default function InventarioPage() {
             onAction={irAlForm}
           />
         ) : (
-          <InventarioList
+          <ListaInventario
             inventario={inventario}
             onUpdate={updateIngrediente}
             onRemove={confirmarYQuitar}
           />
         )}
         <div id="form-inventario" style={{ scrollMarginTop: 90 }}>
-          <InventarioForm onSubmit={addIngrediente} />
+          <FormularioInventario onSubmit={addIngrediente} />
         </div>
       </div>
     </>

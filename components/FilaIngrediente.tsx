@@ -4,14 +4,14 @@ import { colors } from "@/lib/tokens";
 import { formatMoney, ghostButtonStyle } from "./ui";
 import { UnitSelector, type UnitSelectorValue } from "./UnitSelector";
 
-interface IngredientRowProps {
+interface FilaIngredienteProps {
   ingrediente: InventoryIngredient;
   value: RecetaIngrediente;
   onChange: (value: RecetaIngrediente) => void;
   onRemove: () => void;
 }
 
-export function IngredientRow({ ingrediente, value, onChange, onRemove }: IngredientRowProps) {
+export function FilaIngrediente({ ingrediente, value, onChange, onRemove }: FilaIngredienteProps) {
   const selectorValue: UnitSelectorValue = {
     cantidad: value.cantidad,
     unidad: value.unidad,

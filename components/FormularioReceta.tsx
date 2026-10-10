@@ -5,15 +5,15 @@ import type { InventoryIngredient, Receta, RecetaIngrediente } from "@/lib/types
 import { computeRecipeCost } from "@/lib/conversion";
 import { colors, font, numeric, radius } from "@/lib/tokens";
 import { FormHeader, NumberInput, Select, buttonStyle, formPanelStyle, formatMoney, inputStyle, labelStyle, unidadSingular } from "./ui";
-import { IngredientRow } from "./IngredientRow";
+import { FilaIngrediente } from "./FilaIngrediente";
 
-interface RecipeFormProps {
+interface FormularioRecetaProps {
   inventario: InventoryIngredient[];
   recetaInicial?: Receta;
   onGuardar: (receta: Receta) => void;
 }
 
-export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormProps) {
+export function FormularioReceta({ inventario, recetaInicial, onGuardar }: FormularioRecetaProps) {
   const [nombre, setNombre] = useState(recetaInicial?.nombre ?? "");
   const [categoria, setCategoria] = useState(recetaInicial?.categoria ?? "");
   const [porciones, setPorciones] = useState(recetaInicial?.porciones ?? 4);
@@ -112,7 +112,7 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
           const ing = inventarioMap[ri.ingredientId];
           if (!ing) return null;
           return (
-            <IngredientRow
+            <FilaIngrediente
               key={ri.ingredientId}
               ingrediente={ing}
               value={ri}

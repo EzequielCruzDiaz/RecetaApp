@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { InventoryIngredient, Receta } from "@/lib/types";
 import { colors } from "@/lib/tokens";
-import { RecetaCard } from "./RecetaCard";
+import { FichaReceta } from "./FichaReceta";
 import { Chip, ghostButtonStyle, inputStyle, secondaryButtonStyle } from "./ui";
 
 interface ListaRecetasProps {
@@ -58,7 +58,7 @@ export function ListaRecetas({ recetas, inventario, escalarId, onEscalar, onBorr
       ) : (
         <div className="grid-recetas">
           {visibles.map((receta) => (
-            <RecetaCard
+            <FichaReceta
               key={receta.id}
               receta={receta}
               inventario={inventario}

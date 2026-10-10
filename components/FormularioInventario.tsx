@@ -7,11 +7,11 @@ import { FormHeader, NumberInput, Select, buttonStyle, formPanelStyle, inputStyl
 
 const PIEZAS: PieceUnit[] = ["unidad", "docena", "diente", "atado", "lata", "paquete", "saco", "caja"];
 
-interface InventarioFormProps {
+interface FormularioInventarioProps {
   onSubmit: (ingrediente: BorradorInventoryIngredient) => void;
 }
 
-export function InventarioForm({ onSubmit }: InventarioFormProps) {
+export function FormularioInventario({ onSubmit }: FormularioInventarioProps) {
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState<UnitCategory>("peso");
   const [unidadCompra, setUnidadCompra] = useState<Unit>("kg");

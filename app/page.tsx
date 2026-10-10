@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Dashboard } from "@/components/Dashboard";
-import { ResumenHeader } from "@/components/ResumenHeader";
+import { PanelResumen } from "@/components/PanelResumen";
+import { EncabezadoResumen } from "@/components/EncabezadoResumen";
 import { EmptyState, buttonStyle } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
 
@@ -12,7 +12,7 @@ export default function ResumenPage() {
 
   return (
     <>
-      <ResumenHeader
+      <EncabezadoResumen
         nombreNegocio={config.nombreNegocio}
         onGuardarNombre={updateNombreNegocio}
       />
@@ -26,7 +26,7 @@ export default function ResumenPage() {
           </Link>
         </EmptyState>
       ) : (
-        <Dashboard recetas={recetas} inventario={inventario} facturas={facturas} />
+        <PanelResumen recetas={recetas} inventario={inventario} facturas={facturas} />
       )}
     </>
   );

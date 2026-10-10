@@ -5,7 +5,7 @@ import type { InventoryIngredient, UnitCategory } from "@/lib/types";
 import { colors, font, numeric, radius, shadow } from "@/lib/tokens";
 import { Badge, Chip, NumberInput, StockMeter, formatMoney } from "./ui";
 
-interface InventarioListProps {
+interface ListaInventarioProps {
   inventario: InventoryIngredient[];
   onUpdate: (id: string, patch: Partial<InventoryIngredient>) => void;
   onRemove: (id: string) => void;
@@ -73,7 +73,7 @@ function Resumen({ label, children, alert }: { label: string; children: React.Re
   );
 }
 
-export function InventarioList({ inventario, onUpdate, onRemove }: InventarioListProps) {
+export function ListaInventario({ inventario, onUpdate, onRemove }: ListaInventarioProps) {
   const [filtro, setFiltro] = useState<(typeof FILTROS)[number]["id"]>("todos");
 
   const esBajo = (i: InventoryIngredient) => i.stock <= i.stockMinimo;

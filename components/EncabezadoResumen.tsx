@@ -4,7 +4,7 @@ import { useState } from "react";
 import { colors, font } from "@/lib/tokens";
 import { Eyebrow, inputStyle } from "./ui";
 
-interface ResumenHeaderProps {
+interface EncabezadoResumenProps {
   nombreNegocio: string;
   onGuardarNombre: (nombre: string) => void;
 }
@@ -20,7 +20,7 @@ function fechaLarga(d: Date): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function ResumenHeader({ nombreNegocio, onGuardarNombre }: ResumenHeaderProps) {
+export function EncabezadoResumen({ nombreNegocio, onGuardarNombre }: EncabezadoResumenProps) {
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState(nombreNegocio);
   const ahora = new Date();

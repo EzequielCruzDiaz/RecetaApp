@@ -6,7 +6,7 @@ import { computeRecipeCost } from "@/lib/conversion";
 import { colors, font, numeric, radius, shadow } from "@/lib/tokens";
 import { Card, Money, Mosaico, SectionTitle, StockMeter, categoriaColor, formatMoney, unidadSingular } from "./ui";
 
-interface DashboardProps {
+interface PanelResumenProps {
   recetas: Receta[];
   inventario: InventoryIngredient[];
   facturas: Factura[];
@@ -225,7 +225,7 @@ function UltimasCompras({ facturas }: { facturas: Factura[] }) {
   );
 }
 
-export function Dashboard({ recetas, inventario, facturas }: DashboardProps) {
+export function PanelResumen({ recetas, inventario, facturas }: PanelResumenProps) {
   const inventarioMap = Object.fromEntries(inventario.map((i) => [i.id, i]));
 
   const costeos = recetas.map((r) => ({

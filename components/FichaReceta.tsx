@@ -3,14 +3,14 @@ import { computeRecipeCost } from "@/lib/conversion";
 import { colors, font, numeric, radius, shadow } from "@/lib/tokens";
 import { Mosaico, categoriaColor, formatMoney, unidadSingular } from "./ui";
 
-interface RecetaCardProps {
+interface FichaRecetaProps {
   receta: Receta;
   inventario: InventoryIngredient[];
   activa?: boolean;
   accion?: React.ReactNode;
 }
 
-export function RecetaCard({ receta, inventario, activa, accion }: RecetaCardProps) {
+export function FichaReceta({ receta, inventario, activa, accion }: FichaRecetaProps) {
   const inventarioMap = Object.fromEntries(inventario.map((i) => [i.id, i]));
   const { costoTotal, costoPorPorcion } = computeRecipeCost(receta, inventarioMap);
 
