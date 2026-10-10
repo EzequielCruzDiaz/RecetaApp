@@ -12,7 +12,7 @@ function irA(id: string) {
 }
 
 export default function RecetasPage() {
-  const { recetas, inventario, addReceta, removeReceta } = useStore();
+  const { recetas, inventario, addReceta, removeReceta, updateProduccion } = useStore();
   const [escalarId, setEscalarId] = useState<string | null>(null);
   const [editorKey, setEditorKey] = useState(0);
 
@@ -68,6 +68,7 @@ export default function RecetasPage() {
                   key={escalar.id}
                   receta={escalar}
                   inventario={inventario}
+                  onGuardarProduccion={(n) => updateProduccion(escalar.id, n)}
                   onCerrar={() => setEscalarId(null)}
                 />
               </div>

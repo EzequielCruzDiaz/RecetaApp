@@ -50,6 +50,7 @@ function aReceta(r: RecetaRow & { recipe_ingredients: RecetaIngRow[] }): Receta 
     categoria: r.categoria ?? undefined,
     porciones: Number(r.porciones),
     unidadRendimiento: r.unidad_rendimiento ?? undefined,
+    produccion: r.produccion == null ? undefined : Number(r.produccion),
     ingredientes: [...r.recipe_ingredients]
       .sort((a, b) => a.orden - b.orden)
       .map(aRecetaIngrediente),
@@ -148,6 +149,11 @@ export async function fetchRecetas(): Promise<Receta[]> {
   return ((data ?? []) as unknown as (RecetaRow & { recipe_ingredients: RecetaIngRow[] })[]).map(
     aReceta,
   );
+}
+
+export async function guardarProduccion(id: string, produccion: number | null): Promise<void> {
+  const { error } = await getSupabase().from("recipes").update({ produccion }).eq("id", id);
+  if (error) throw error;
 }
 
 export async function guardarReceta(r: Receta): Promise<void> {

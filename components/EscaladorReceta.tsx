@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { InventoryIngredient, Receta } from "@/lib/types";
 import { computeIngredientCost } from "@/lib/conversion";
 import { colors, font, numeric, radius, shadow } from "@/lib/tokens";
@@ -9,12 +9,38 @@ import { Mosaico, NumberInput, formatMoney, inputStyle, unidadSingular } from ".
 interface EscaladorRecetaProps {
   receta: Receta;
   inventario: InventoryIngredient[];
+  /** Guarda la cantidad a producir de esta receta (`null` = la receta base). */
+  onGuardarProduccion: (produccion: number | null) => void;
   onCerrar?: () => void;
 }
 
-export function EscaladorReceta({ receta, inventario, onCerrar }: EscaladorRecetaProps) {
+/** Espera a que se termine de escribir antes de guardar. */
+const ESPERA_GUARDADO_MS = 500;
+
+export function EscaladorReceta({ receta, inventario, onGuardarProduccion, onCerrar }: EscaladorRecetaProps) {
   const rinde = receta.unidadRendimiento ?? "porciones";
-  const [deseada, setDeseada] = useState(receta.porciones);
+  const [deseada, setDeseadaLocal] = useState(receta.produccion ?? receta.porciones);
+
+  const pendiente = useRef<{ timer: ReturnType<typeof setTimeout>; guardar: () => void } | null>(null);
+  // Si se cierra el escalador antes de que pase la espera, se guarda igual.
+  useEffect(
+    () => () => {
+      if (!pendiente.current) return;
+      clearTimeout(pendiente.current.timer);
+      pendiente.current.guardar();
+    },
+    [],
+  );
+
+  function setDeseada(n: number) {
+    setDeseadaLocal(n);
+    if (pendiente.current) clearTimeout(pendiente.current.timer);
+    const guardar = () => {
+      pendiente.current = null;
+      if (n > 0) onGuardarProduccion(n === receta.porciones ? null : n);
+    };
+    pendiente.current = { timer: setTimeout(guardar, ESPERA_GUARDADO_MS), guardar };
+  }
 
   const inventarioMap = useMemo(
     () => Object.fromEntries(inventario.map((i) => [i.id, i])),
@@ -119,7 +145,8 @@ export function EscaladorReceta({ receta, inventario, onCerrar }: EscaladorRecet
             fontWeight: 800,
             textAlign: "center",
             background: colors.surface,
-            border: `2px solid ${colors.mango}`,
+            borderWidth: 2,
+            borderColor: colors.mango,
             ...numeric,
           }}
         />

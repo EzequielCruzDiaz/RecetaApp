@@ -39,6 +39,8 @@ interface Store extends StoreShape {
   removeIngrediente: (id: string) => void;
   addReceta: (r: Receta) => void;
   removeReceta: (id: string) => void;
+  /** Guarda cuánto se quiere producir de la receta; `null` vuelve a la receta base. */
+  updateProduccion: (id: string, produccion: number | null) => void;
   addFactura: (b: BorradorFactura) => void;
   removeFactura: (id: string) => void;
   updateNombreNegocio: (nombre: string) => void;
@@ -147,6 +149,13 @@ function LocalStore({ children }: { children: React.ReactNode }) {
     writeSnapshot({ ...memo, recetas: memo.recetas.filter((r) => r.id !== id) });
   }, []);
 
+  const updateProduccion = useCallback((id: string, produccion: number | null) => {
+    writeSnapshot({
+      ...memo,
+      recetas: memo.recetas.map((r) => (r.id === id ? { ...r, produccion: produccion ?? undefined } : r)),
+    });
+  }, []);
+
   const addFactura = useCallback((b: BorradorFactura) => {
     const factura: Factura = { ...b, id: nuevoId("fac"), aplicadaAlInventario: true };
     const inventario = aplicarAlStock(memo.inventario, b.items, 1);
@@ -178,6 +187,7 @@ function LocalStore({ children }: { children: React.ReactNode }) {
       removeIngrediente,
       addReceta,
       removeReceta,
+      updateProduccion,
       addFactura,
       removeFactura,
       updateNombreNegocio,
@@ -189,6 +199,7 @@ function LocalStore({ children }: { children: React.ReactNode }) {
       removeIngrediente,
       addReceta,
       removeReceta,
+      updateProduccion,
       addFactura,
       removeFactura,
       updateNombreNegocio,
@@ -259,6 +270,16 @@ function SupabaseStore({ children }: { children: React.ReactNode }) {
       removeIngrediente: (id) => void run(() => repo.borrarIngrediente(id)),
       addReceta: (r) => void run(() => repo.guardarReceta(r)),
       removeReceta: (id) => void run(() => repo.borrarReceta(id)),
+      updateProduccion: (id, produccion) => {
+        // Se refleja al momento; recargar todo en cada tecla sería lento.
+        setState((s) => ({
+          ...s,
+          recetas: s.recetas.map((r) => (r.id === id ? { ...r, produccion: produccion ?? undefined } : r)),
+        }));
+        repo.guardarProduccion(id, produccion).catch((e: unknown) =>
+          setError(e instanceof Error ? e.message : "No se pudo guardar la producción"),
+        );
+      },
       addFactura: (b) => void run(() => repo.crearFactura(b)),
       removeFactura: (id) => void run(() => repo.borrarFactura(id)),
       updateNombreNegocio: (nombre) => void run(() => repo.actualizarConfig({ nombreNegocio: nombre })),

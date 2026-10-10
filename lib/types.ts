@@ -42,6 +42,8 @@ export interface Receta {
   categoria?: string;
   porciones: number;
   unidadRendimiento?: string;
+  /** Lo último que se pidió producir en el escalador (en la unidad de rendimiento). */
+  produccion?: number;
   ingredientes: RecetaIngrediente[];
 }
 
