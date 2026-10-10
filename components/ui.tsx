@@ -423,7 +423,11 @@ export const labelStyle: React.CSSProperties = {
 export const inputStyle: React.CSSProperties = {
   fontSize: 14,
   padding: "10px 12px",
-  border: `1px solid ${colors.border}`,
+  // Por separado: los campos con error o leídos de una foto cambian solo el
+  // color, y React se queja si se mezcla `border` con `borderColor`.
+  borderWidth: 1,
+  borderStyle: "solid",
+  borderColor: colors.border,
   borderRadius: radius.sm + 2,
   background: colors.surface,
   color: colors.text,
