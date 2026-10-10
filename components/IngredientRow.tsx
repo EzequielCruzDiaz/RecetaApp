@@ -1,6 +1,7 @@
 import type { InventoryIngredient, RecetaIngrediente } from "@/lib/types";
 import { computeIngredientCost } from "@/lib/conversion";
-import { colors, font } from "@/lib/tokens";
+import { colors } from "@/lib/tokens";
+import { formatMoney, ghostButtonStyle } from "./ui";
 import { UnitSelector, type UnitSelectorValue } from "./UnitSelector";
 
 interface IngredientRowProps {
@@ -32,23 +33,24 @@ export function IngredientRow({ ingrediente, value, onChange, onRemove }: Ingred
     <div
       style={{
         border: `1px solid ${colors.border}`,
-        borderRadius: 10,
-        padding: 14,
+        borderLeft: `4px solid ${colors.mango}`,
+        borderRadius: 12,
+        padding: "14px 16px",
         marginBottom: 10,
         background: colors.surface,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <div>
-          <p style={{ fontSize: 14, margin: 0, color: colors.text, fontFamily: font.family, fontWeight: 500 }}>{ingrediente.nombre}</p>
-          <p style={{ fontSize: 12, color: colors.textFaint, margin: 0, fontFamily: font.family }}>
-            En inventario: RD${ingrediente.precioCompra.toFixed(2)}/{ingrediente.unidadCompra}
+          <p style={{ fontSize: 15, margin: 0, color: colors.text, fontWeight: 700 }}>{ingrediente.nombre}</p>
+          <p style={{ fontSize: 12, color: colors.textFaint, margin: "2px 0 0", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+            En inventario: {formatMoney(ingrediente.precioCompra)}/{ingrediente.unidadCompra}
           </p>
         </div>
         <button
           onClick={onRemove}
           aria-label={`Quitar ${ingrediente.nombre}`}
-          style={{ border: "none", background: "transparent", color: colors.textMuted, cursor: "pointer", fontSize: 13 }}
+          style={ghostButtonStyle}
         >
           Quitar
         </button>
@@ -57,7 +59,7 @@ export function IngredientRow({ ingrediente, value, onChange, onRemove }: Ingred
       <UnitSelector value={selectorValue} onChange={(v) => onChange({ ...value, ...v })} unidadSugerida={ingrediente.unidadCompra} />
 
       {error && (
-        <p style={{ fontSize: 12, color: colors.accent, margin: "8px 0 0", fontFamily: font.family }}>{error}</p>
+        <p style={{ fontSize: 12.5, color: colors.accent, margin: "8px 0 0", fontWeight: 600 }}>{error}</p>
       )}
 
       {costo !== null && (
@@ -65,13 +67,13 @@ export function IngredientRow({ ingrediente, value, onChange, onRemove }: Ingred
           style={{
             marginTop: 10,
             paddingTop: 10,
-            borderTop: `1px solid ${colors.border}`,
+            borderTop: `1px dashed ${colors.border}`,
             display: "flex",
             justifyContent: "flex-end",
           }}
         >
-          <p style={{ fontSize: 14, fontWeight: 500, color: colors.text, margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: font.family }}>
-            RD${costo.toFixed(2)}
+          <p style={{ fontSize: 15, fontWeight: 800, color: colors.text, margin: 0, fontVariantNumeric: "tabular-nums" }}>
+            {formatMoney(costo)}
           </p>
         </div>
       )}

@@ -3,11 +3,11 @@
 import { useState } from "react";
 import type { BorradorFactura, FacturaItem, InventoryIngredient, Unit } from "@/lib/types";
 import type { CamposFacturaOCR } from "@/lib/factura-ocr";
-import { colors, font, numeric, radius } from "@/lib/tokens";
-import { buttonStyle, formatMoney, inputStyle, NumberInput, Select } from "./ui";
+import { colors, numeric, radius } from "@/lib/tokens";
+import { FormHeader, NumberInput, Select, buttonStyle, formPanelStyle, formatMoney, inputStyle, labelStyle } from "./ui";
 
-const OCR_BORDER = "#E2B98A";
-const OCR_BG = "#FFF8EE";
+const OCR_BORDER = "#E8B04A";
+const OCR_BG = "#FFF6E3";
 
 interface ConfirmarFacturaProps {
   inventario: InventoryIngredient[];
@@ -82,31 +82,20 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
   const ocrFieldStyle = preset ? { ...inputStyle, borderColor: OCR_BORDER } : inputStyle;
 
   return (
-    <div
-      style={{
-        background: "#FFFDF8",
-        border: "1.5px dashed #D8C7A8",
-        borderRadius: radius.xl,
-        padding: 22,
-        display: "flex",
-        flexDirection: "column",
-        gap: 14,
-      }}
-    >
-      <div>
-        <h3 style={{ fontFamily: font.family, fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
-          Confirmar factura
-        </h3>
-        <p style={{ fontSize: 12, color: colors.textMuted, margin: "4px 0 0" }}>
-          {preset
-            ? "Datos precargados por OCR (borde ámbar) — revisá y corregí antes de guardar."
-            : "O cargala a mano: quién te vendió (Proveedor) y qué compraste (Ítems)."}
-        </p>
-      </div>
+    <div style={formPanelStyle}>
+      <FormHeader
+        step="2"
+        title="Confirmar y aplicar al inventario"
+        hint={
+          preset
+            ? "Datos precargados por el escáner (borde ámbar). Revísalos y corrige antes de guardar."
+            : "O cárgala a mano: a quién le compraste (suplidor) y qué compraste (ítems)."
+        }
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
-        <label style={{ fontSize: 11, color: colors.textMuted }}>
-          Proveedor
+        <label style={labelStyle}>
+          Suplidor
           <input
             value={proveedor}
             onChange={(e) => setProveedor(e.target.value)}
@@ -114,11 +103,11 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
             style={ocrFieldStyle}
           />
         </label>
-        <label style={{ fontSize: 11, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Fecha
           <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={ocrFieldStyle} />
         </label>
-        <label style={{ fontSize: 11, color: colors.textMuted }}>
+        <label style={labelStyle}>
           RNC
           <input
             value={rnc}
@@ -127,7 +116,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
             style={ocrFieldStyle}
           />
         </label>
-        <label style={{ fontSize: 11, color: colors.textMuted }}>
+        <label style={labelStyle}>
           NCF
           <input
             value={ncf}
@@ -139,7 +128,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ítems</span>
+        <span style={labelStyle}>Ítems</span>
 
         <div
           style={{
@@ -148,10 +137,10 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
             gap: 8,
             padding: "0 8px",
             fontSize: 10.5,
-            fontWeight: 600,
+            fontWeight: 800,
             color: colors.textFaint,
             textTransform: "uppercase",
-            letterSpacing: 0.3,
+            letterSpacing: 0.8,
           }}
         >
           <span style={{ flex: "2 1 160px" }}>Producto</span>
@@ -174,7 +163,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
               alignItems: "center",
               border: `1px solid ${deOcr ? OCR_BORDER : colors.border}`,
               background: deOcr ? OCR_BG : "transparent",
-              borderRadius: 8,
+              borderRadius: 12,
               padding: 8,
             }}
           >
@@ -236,13 +225,15 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
           onClick={() => setItems((prev) => [...prev, filaVacia()])}
           style={{
             alignSelf: "flex-start",
-            border: `1px dashed ${colors.border}`,
+            border: `1.5px dashed ${colors.borderStrong}`,
             background: "transparent",
             color: colors.textMuted,
-            borderRadius: radius.sm,
-            padding: "6px 12px",
+            borderRadius: 999,
+            padding: "7px 14px",
             fontSize: 13,
+            fontWeight: 700,
             cursor: "pointer",
+            fontFamily: "inherit",
           }}
         >
           + Agregar ítem
@@ -258,9 +249,12 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
           alignItems: "center",
           justifyContent: "flex-end",
           gap: 16,
-          borderTop: `1px solid ${colors.border}`,
-          paddingTop: 12,
+          background: colors.surfaceAlt,
+          border: `1px solid ${colors.border}`,
+          borderRadius: radius.lg,
+          padding: "12px 16px",
           fontSize: 13,
+          fontWeight: 600,
           color: colors.textMuted,
           flexWrap: "wrap",
         }}
@@ -294,7 +288,7 @@ export function ConfirmarFactura({ inventario, onConfirmar, preset }: ConfirmarF
 
       {descuadre && (
         <p style={{ fontSize: 12, color: colors.accent, margin: 0, textAlign: "right" }}>
-          El total no cuadra con subtotal + ITBIS ({formatMoney(totalCalculado)}). Revisá los ítems.
+          El total no cuadra con subtotal + ITBIS ({formatMoney(totalCalculado)}). Revisa los ítems.
         </p>
       )}
 

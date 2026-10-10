@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { getSupabase } from "@/lib/supabase/client";
-import { colors, font, radius } from "@/lib/tokens";
-import { buttonStyle, inputStyle } from "./ui";
+import { colors, font, radius, shadow } from "@/lib/tokens";
+import { CalderoIcon, Mosaico, buttonStyle, inputStyle, labelStyle } from "./ui";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   if (!supabaseConfigurado) return <>{children}</>;
@@ -61,33 +61,56 @@ function LoginForm() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: colors.bg,
+        position: "relative",
+        overflow: "hidden",
+        background: colors.monte,
         fontFamily: font.family,
         padding: 24,
       }}
     >
+      <Mosaico color={colors.mango} opacity={0.1} size={56} />
       <form
         onSubmit={entrar}
         style={{
           width: "100%",
-          maxWidth: 340,
+          maxWidth: 360,
+          position: "relative",
           background: colors.surface,
-          border: `1px solid ${colors.border}`,
-          borderRadius: radius.md,
-          padding: 24,
+          borderTop: `5px solid ${colors.mango}`,
+          borderRadius: radius.xl,
+          boxShadow: shadow.raised,
+          padding: 28,
           display: "flex",
           flexDirection: "column",
-          gap: 12,
+          gap: 14,
         }}
       >
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: colors.text }}>Cuadre</h1>
-          <p style={{ fontSize: 13, color: colors.textMuted, margin: "4px 0 0" }}>
-            Ingresá con tu cuenta.
+          <div
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: 15,
+              background: colors.monte,
+              color: colors.mango,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 14,
+              transform: "rotate(-4deg)",
+            }}
+          >
+            <CalderoIcon size={25} strokeWidth={2} />
+          </div>
+          <h1 style={{ fontFamily: font.display, fontSize: 30, fontWeight: 600, letterSpacing: -0.6, margin: 0, color: colors.text }}>
+            Cuadre
+          </h1>
+          <p style={{ fontSize: 14, color: colors.textMuted, margin: "4px 0 0" }}>
+            Entra con tu cuenta para ver tu cocina.
           </p>
         </div>
 
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Email
           <input
             type="email"
@@ -99,7 +122,7 @@ function LoginForm() {
           />
         </label>
 
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Contraseña
           <input
             type="password"

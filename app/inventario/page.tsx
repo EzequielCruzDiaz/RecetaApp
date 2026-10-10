@@ -2,11 +2,11 @@
 
 import { InventarioForm } from "@/components/InventarioForm";
 import { InventarioList } from "@/components/InventarioList";
-import { EmptyState, PageTitle } from "@/components/ui";
+import { EmptyState, PageTitle, buttonStyle } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
 
 function irAlForm() {
-  document.getElementById("form-inventario")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  document.getElementById("form-inventario")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 export default function InventarioPage() {
@@ -23,14 +23,22 @@ export default function InventarioPage() {
   return (
     <>
       <PageTitle
+        eyebrow="Almacén"
         title="Inventario"
-        subtitle='Ingredientes, precio de compra y stock. Cuando el stock actual llega al mínimo, se marca "Stock bajo".'
+        subtitle="Ingredientes, precio de compra y lo que hay en el almacén. Cuando algo llega a su mínimo, te avisamos para reponer."
+        aside={
+          inventario.length > 0 && (
+            <button type="button" onClick={irAlForm} style={buttonStyle}>
+              + Agregar ingrediente
+            </button>
+          )
+        }
       />
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {inventario.length === 0 ? (
           <EmptyState
             title="El inventario está vacío"
-            hint="Cargá tus ingredientes con su unidad de compra, precio y stock. Después vas a poder costear recetas y registrar facturas contra ellos."
+            hint="Carga tus ingredientes con su unidad de compra, precio y stock. Después vas a poder costear recetas y registrar facturas contra ellos."
             actionLabel="Agregar el primer ingrediente"
             onAction={irAlForm}
           />
@@ -41,7 +49,7 @@ export default function InventarioPage() {
             onRemove={confirmarYQuitar}
           />
         )}
-        <div id="form-inventario">
+        <div id="form-inventario" style={{ scrollMarginTop: 90 }}>
           <InventarioForm onSubmit={addIngrediente} />
         </div>
       </div>

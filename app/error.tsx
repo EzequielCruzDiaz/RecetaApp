@@ -17,7 +17,7 @@ export default function Error({
   return (
     <EmptyState
       title="Algo salió mal"
-      hint={error.message || "Ocurrió un error inesperado. Podés intentar de nuevo."}
+      hint={error.message || "Ocurrió un error inesperado. Puedes intentar de nuevo."}
       actionLabel="Reintentar"
       onAction={reset}
     />

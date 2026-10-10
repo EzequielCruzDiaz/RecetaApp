@@ -5,8 +5,8 @@ import { colors } from "@/lib/tokens";
 
 const sidebarButtonStyle: React.CSSProperties = {
   fontWeight: 600,
-  border: `1.5px solid ${colors.secondary}`,
-  color: colors.secondary,
+  border: `1.5px solid ${colors.mango}`,
+  color: colors.mango,
   background: "transparent",
 };
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { InventoryIngredient, Receta, RecetaIngrediente } from "@/lib/types";
 import { computeRecipeCost } from "@/lib/conversion";
 import { colors, font, numeric, radius } from "@/lib/tokens";
-import { buttonStyle, formatMoney, inputStyle, NumberInput, Select } from "./ui";
+import { FormHeader, NumberInput, Select, buttonStyle, formPanelStyle, formatMoney, inputStyle, labelStyle, unidadSingular } from "./ui";
 import { IngredientRow } from "./IngredientRow";
 
 interface RecipeFormProps {
@@ -62,34 +62,22 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
   }
 
   return (
-    <div
-      style={{
-        background: "#FFFDF8",
-        border: "1.5px dashed #D8C7A8",
-        borderRadius: radius.xl,
-        padding: 22,
-        display: "flex",
-        flexDirection: "column",
-        gap: 14,
-      }}
-    >
-      <div>
-        <h3 style={{ fontFamily: font.family, fontSize: 16, fontWeight: 600, margin: 0, color: colors.text }}>
-          {recetaInicial ? "Editar receta" : "Agregar una receta"}
-        </h3>
-        {!recetaInicial && (
-          <p style={{ fontSize: 12, color: colors.textMuted, margin: "4px 0 0" }}>
-            Elegí ingredientes del inventario y cuánto usa esta receta de cada uno — el costo se calcula solo.
-          </p>
-        )}
-      </div>
+    <div style={formPanelStyle}>
+      <FormHeader
+        title={recetaInicial ? "Editar receta" : "Nueva receta"}
+        hint={
+          recetaInicial
+            ? undefined
+            : "Elige ingredientes del inventario y cuánto lleva de cada uno. El costo se calcula solo."
+        }
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Nombre
-          <input value={nombre} onChange={(e) => setNombre(e.target.value)} style={inputStyle} />
+          <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Moro de guandules" style={inputStyle} />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Categoría
           <input
             value={categoria}
@@ -98,7 +86,7 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
             style={inputStyle}
           />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Rendimiento
           <NumberInput
             min={1}
@@ -107,7 +95,7 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
             style={{ ...inputStyle, ...numeric }}
           />
         </label>
-        <label style={{ fontSize: 12, color: colors.textMuted }}>
+        <label style={labelStyle}>
           Unidad de rendimiento
           <input
             value={unidadRendimiento}
@@ -119,7 +107,7 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>Ingredientes</span>
+        <span style={{ ...labelStyle, marginBottom: 4 }}>Ingredientes</span>
         {ingredientes.map((ri, index) => {
           const ing = inventarioMap[ri.ingredientId];
           if (!ing) return null;
@@ -149,15 +137,23 @@ export function RecipeForm({ inventario, recetaInicial, onGuardar }: RecipeFormP
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderTop: `1px solid ${colors.border}`,
-          paddingTop: 12,
+          gap: 16,
+          flexWrap: "wrap",
+          background: colors.surfaceAlt,
+          border: `1px solid ${colors.border}`,
+          borderRadius: radius.lg,
+          padding: "12px 12px 12px 18px",
         }}
       >
-        <div style={{ fontSize: 13, color: colors.textMuted }}>
-          <span style={numeric}>Total {formatMoney(costoTotal)}</span>
-          {"  ·  "}
-          <span style={{ ...numeric, color: colors.accent, fontWeight: 700 }}>
-            {formatMoney(costoPorPorcion)} / {unidadRendimiento.replace(/s$/, "") || "porción"}
+        <div style={{ display: "flex", gap: 22, alignItems: "baseline", flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, color: colors.textMuted, fontWeight: 600 }}>
+            La tanda <span style={{ ...numeric, color: colors.text, fontWeight: 800 }}>{formatMoney(costoTotal)}</span>
+          </span>
+          <span style={{ fontSize: 13, color: colors.textMuted, fontWeight: 600 }}>
+            Por {unidadSingular(unidadRendimiento || "porciones")}{" "}
+            <span style={{ ...numeric, fontFamily: font.display, fontSize: 22, color: colors.text, fontWeight: 600 }}>
+              {formatMoney(costoPorPorcion)}
+            </span>
           </span>
         </div>
         <button type="button" onClick={guardar} style={buttonStyle}>

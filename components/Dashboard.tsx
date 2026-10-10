@@ -1,108 +1,231 @@
 "use client";
 
 import Link from "next/link";
-import type { InventoryIngredient, Receta } from "@/lib/types";
+import type { Factura, InventoryIngredient, Receta } from "@/lib/types";
 import { computeRecipeCost } from "@/lib/conversion";
-import { colors, font, numeric } from "@/lib/tokens";
-import { Card, InitialChip, Money, categoriaColor } from "./ui";
+import { colors, font, numeric, radius, shadow } from "@/lib/tokens";
+import { Card, Money, Mosaico, SectionTitle, StockMeter, categoriaColor, formatMoney, unidadSingular } from "./ui";
 
 interface DashboardProps {
   recetas: Receta[];
   inventario: InventoryIngredient[];
+  facturas: Factura[];
 }
 
-const STAT_ICON = {
-  book: (
-    <path d="M10 5.5c-1.3-1-3.4-1.5-6-1.5v11c2.6 0 4.7.5 6 1.5m0-11c1.3-1 3.4-1.5 6-1.5v11c-2.6 0-4.7.5-6 1.5" />
-  ),
-  money: <path d="M10 6.5v7M12.2 8c0-1-1-1.6-2.2-1.6S7.8 7 7.8 8c0 2 4.4 1 4.4 3s-1.3 1.6-2.2 1.6-2.2-.6-2.2-1.6" />,
-  box: <path d="M3 6.5l7-3.5 7 3.5-7 3.5-7-3.5zm0 0v7l7 3.5 7-3.5v-7" />,
-  warn: <path d="M10 3l7.5 13.5H2.5zM10 8v4M10 14.2v.1" />,
+const linkStyle: React.CSSProperties = {
+  fontSize: 13,
+  color: colors.accent,
+  textDecoration: "none",
+  fontWeight: 800,
+  whiteSpace: "nowrap",
 };
 
 function Stat({
-  icon,
-  iconColor,
   label,
+  hint,
+  alert,
   children,
 }: {
-  icon: React.ReactNode;
-  iconColor: string;
   label: string;
+  hint: string;
+  alert?: boolean;
   children: React.ReactNode;
 }) {
-  return (
-    <Card style={{ display: "flex", flexDirection: "column", gap: 8, padding: "18px 18px 16px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <div
-          style={{
-            width: 26,
-            height: 26,
-            borderRadius: 8,
-            background: `${iconColor}22`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: iconColor,
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            {icon}
-          </svg>
-        </div>
-        <span style={{ fontSize: 11.5, color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.4, fontWeight: 600 }}>
-          {label}
-        </span>
-      </div>
-      <span style={{ fontFamily: font.family, fontSize: 21, fontWeight: 700, color: colors.text, ...numeric }}>
-        {children}
-      </span>
-    </Card>
-  );
-}
-
-function HeroBanner() {
   return (
     <div
       style={{
         position: "relative",
-        borderRadius: 20,
+        background: colors.surface,
+        border: `1px solid ${alert ? `${colors.accent}55` : colors.border}`,
+        borderRadius: radius.lg,
+        boxShadow: shadow.card,
+        padding: "16px 18px 15px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
         overflow: "hidden",
-        marginBottom: 28,
-        background: colors.text,
-        minHeight: 160,
       }}
     >
-      <div
+      <span style={{ fontSize: 11, color: colors.textMuted, textTransform: "uppercase", letterSpacing: 1, fontWeight: 800 }}>
+        {label}
+      </span>
+      <span
+        className="stat-valor"
         style={{
-          position: "absolute",
-          inset: 0,
-          background: `radial-gradient(circle at 80% 30%, ${colors.secondary}, transparent 55%), radial-gradient(circle at 95% 85%, ${colors.accent}, transparent 45%), linear-gradient(135deg, #33422F, ${colors.text})`,
-        }}
-      />
-      <div
-        style={{
-          position: "relative",
-          padding: "28px 30px",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          gap: 8,
-          minHeight: 160,
+          fontFamily: font.display,
+          fontSize: 30,
+          fontWeight: 600,
+          letterSpacing: -0.6,
+          lineHeight: 1.1,
+          color: alert ? colors.accent : colors.text,
+          ...numeric,
         }}
       >
-        <div style={{ fontFamily: font.family, fontStyle: "italic", fontWeight: 500, fontSize: 19, color: colors.bg }}>
-          Del fogón a la factura.
+        {children}
+      </span>
+      <span style={{ fontSize: 12, color: colors.textFaint, fontWeight: 600 }}>{hint}</span>
+    </div>
+  );
+}
+
+function Pizarra({ costeos }: { costeos: { receta: Receta; costoPorPorcion: number }[] }) {
+  return (
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        background: colors.monte,
+        color: colors.sidebarText,
+        borderRadius: radius.xl,
+        padding: "26px 28px 24px",
+        height: "100%",
+        boxShadow: shadow.raised,
+        border: "6px solid #6B4A2F",
+      }}
+    >
+      <Mosaico color={colors.mango} opacity={0.07} size={56} />
+      <div style={{ position: "relative" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 4 }}>
+          <h2
+            style={{
+              fontFamily: font.display,
+              fontStyle: "italic",
+              fontSize: 28,
+              fontWeight: 500,
+              margin: 0,
+              color: colors.mango,
+              letterSpacing: -0.4,
+            }}
+          >
+            La pizarra
+          </h2>
+          <Link href="/recetas" style={{ ...linkStyle, color: colors.mango }}>
+            Ver recetas →
+          </Link>
         </div>
-        <div style={{ fontSize: 13.5, color: "#C9CFC4", maxWidth: 340 }}>
-          Costeá cada plato al centavo, controlá el inventario y no se te va ni un plátano sin registrar.
+        <p style={{ fontSize: 13, color: colors.sidebarMuted, margin: "0 0 18px" }}>
+          Lo que te cuesta cada plato, por porción.
+        </p>
+
+        {costeos.length === 0 && (
+          <p style={{ fontSize: 14, color: colors.sidebarMuted, margin: 0 }}>Todavía no hay recetas en la pizarra.</p>
+        )}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+          {costeos.slice(0, 8).map((c) => (
+            <div key={c.receta.id} style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 2,
+                  transform: "rotate(45deg) translateY(-2px)",
+                  background: categoriaColor(c.receta.categoria),
+                  boxShadow: "0 0 0 1.5px rgba(244,236,223,0.5)",
+                  flexShrink: 0,
+                }}
+              />
+              <span style={{ fontFamily: font.display, fontSize: 17, fontWeight: 500, minWidth: 0 }}>
+                {c.receta.nombre}
+              </span>
+              <span className="lider" />
+              <span style={{ fontSize: 15, fontWeight: 800, ...numeric, whiteSpace: "nowrap" }}>
+                {formatMoney(c.costoPorPorcion)}
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: colors.sidebarMuted }}>
+                  {" "}
+                  /{unidadSingular(c.receta.unidadRendimiento ?? "porciones")}
+                </span>
+              </span>
+            </div>
+          ))}
         </div>
+        {costeos.length > 8 && (
+          <p style={{ fontSize: 12.5, color: colors.sidebarMuted, margin: "16px 0 0" }}>
+            y {costeos.length - 8} más en Recetas.
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
-export function Dashboard({ recetas, inventario }: DashboardProps) {
+function ListaCompras({ bajoStock }: { bajoStock: InventoryIngredient[] }) {
+  return (
+    <Card style={{ padding: "20px 22px" }}>
+      <SectionTitle action={<Link href="/inventario" style={linkStyle}>Ir a inventario →</Link>}>
+        Lista de compras
+      </SectionTitle>
+      {bajoStock.length === 0 ? (
+        <p style={{ fontSize: 14, color: colors.positive, fontWeight: 700, margin: 0 }}>
+          Todo está por encima del mínimo. ¡Nítido!
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {bajoStock.map((i) => {
+            const falta = Math.max(0, i.stockMinimo - i.stock);
+            return (
+              <div key={i.id} style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+                  <span style={{ fontSize: 14.5, fontWeight: 700, color: colors.text }}>{i.nombre}</span>
+                  <span style={{ fontSize: 12.5, color: colors.accent, fontWeight: 800, ...numeric, whiteSpace: "nowrap" }}>
+                    {falta > 0 ? `faltan ${Number(falta.toFixed(2))} ${i.unidadCompra}` : "en el mínimo"}
+                  </span>
+                </div>
+                <StockMeter stock={i.stock} minimo={i.stockMinimo} />
+                <span style={{ fontSize: 11.5, color: colors.textFaint, fontWeight: 600, ...numeric }}>
+                  Hay {i.stock} de {i.stockMinimo} {i.unidadCompra} mínimo
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function UltimasCompras({ facturas }: { facturas: Factura[] }) {
+  const recientes = [...facturas].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 3);
+  return (
+    <Card style={{ padding: "20px 22px" }}>
+      <SectionTitle action={<Link href="/facturas" style={linkStyle}>Registrar →</Link>}>Últimas compras</SectionTitle>
+      {recientes.length === 0 ? (
+        <p style={{ fontSize: 13.5, color: colors.textMuted, margin: 0 }}>
+          Cuando registres una factura de un suplidor, aparece aquí.
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {recientes.map((f, i) => (
+            <div
+              key={f.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "11px 0",
+                borderTop: i === 0 ? "none" : `1px dashed ${colors.border}`,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: colors.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {f.proveedor}
+                </div>
+                <div style={{ fontSize: 12, color: colors.textFaint, fontWeight: 600, ...numeric }}>
+                  {f.fecha} · {f.items.length} {f.items.length === 1 ? "ítem" : "ítems"}
+                </div>
+              </div>
+              <span style={{ fontSize: 14, color: colors.text }}>
+                <Money value={f.total} />
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+export function Dashboard({ recetas, inventario, facturas }: DashboardProps) {
   const inventarioMap = Object.fromEntries(inventario.map((i) => [i.id, i]));
 
   const costeos = recetas.map((r) => ({
@@ -115,75 +238,32 @@ export function Dashboard({ recetas, inventario }: DashboardProps) {
       ? costeos.reduce((acc, c) => acc + c.costoPorPorcion, 0) / costeos.length
       : 0;
 
+  const valorInventario = inventario.reduce((acc, i) => acc + i.stock * i.precioCompra, 0);
   const bajoStock = inventario.filter((i) => i.stock <= i.stockMinimo);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-      <HeroBanner />
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 28 }}>
-        <Stat icon={STAT_ICON.book} iconColor={colors.secondary} label="Recetas costeadas">
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className="grid-stats">
+        <Stat label="Recetas" hint="costeadas al centavo">
           {recetas.length}
         </Stat>
-        <Stat icon={STAT_ICON.money} iconColor={colors.positive} label="Costo prom. / porción">
-          <Money value={promedioPorPorcion} />
+        <Stat label="Costo promedio" hint="por porción">
+          {formatMoney(promedioPorPorcion)}
         </Stat>
-        <Stat icon={STAT_ICON.box} iconColor={colors.text} label="Ingredientes">
-          {inventario.length}
+        <Stat label="En almacén" hint={`${inventario.length} ingredientes`}>
+          {formatMoney(valorInventario)}
         </Stat>
-        <Stat icon={STAT_ICON.warn} iconColor={colors.accent} label="Stock bajo">
-          <span style={{ color: bajoStock.length > 0 ? colors.accent : colors.text }}>{bajoStock.length}</span>
+        <Stat label="Stock bajo" hint={bajoStock.length > 0 ? "hay que reponer" : "todo en orden"} alert={bajoStock.length > 0}>
+          {bajoStock.length}
         </Stat>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        <Card style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <h3 style={{ fontFamily: font.family, fontSize: 15, fontWeight: 600, margin: 0, color: colors.text }}>
-              Recetas recientes
-            </h3>
-            <Link href="/recetas" style={{ fontSize: 12, color: colors.accent, textDecoration: "none", fontWeight: 600 }}>
-              Ver todas →
-            </Link>
-          </div>
-          {costeos.slice(0, 5).map((c) => {
-            const color = categoriaColor(c.receta.categoria);
-            return (
-              <div key={c.receta.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <InitialChip label={c.receta.nombre[0]} color={color} />
-                <span style={{ flex: 1, fontSize: 13.5, color: colors.text }}>{c.receta.nombre}</span>
-                <span style={{ fontSize: 13, color: colors.textMuted, ...numeric }}>
-                  <Money value={c.costoPorPorcion} /> / {c.receta.unidadRendimiento ?? "porción"}
-                </span>
-              </div>
-            );
-          })}
-          {costeos.length === 0 && (
-            <p style={{ fontSize: 13, color: colors.textFaint, margin: 0 }}>Todavía no hay recetas.</p>
-          )}
-        </Card>
-
-        <Card style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <h3 style={{ fontFamily: font.family, fontSize: 15, fontWeight: 600, margin: 0, color: colors.text }}>
-              Stock bajo
-            </h3>
-            <Link href="/inventario" style={{ fontSize: 12, color: colors.accent, textDecoration: "none", fontWeight: 600 }}>
-              Ir a inventario →
-            </Link>
-          </div>
-          {bajoStock.map((i) => (
-            <div key={i.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13.5 }}>
-              <span style={{ color: colors.text }}>{i.nombre}</span>
-              <span style={{ color: colors.accent, fontWeight: 700, ...numeric }}>
-                {i.stock} / {i.stockMinimo} {i.unidadCompra}
-              </span>
-            </div>
-          ))}
-          {bajoStock.length === 0 && (
-            <p style={{ fontSize: 13, color: colors.positive, margin: 0 }}>Todo el inventario sobre el mínimo.</p>
-          )}
-        </Card>
+      <div className="grid-resumen">
+        <Pizarra costeos={costeos} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          <ListaCompras bajoStock={bajoStock} />
+          <UltimasCompras facturas={facturas} />
+        </div>
       </div>
     </div>
   );

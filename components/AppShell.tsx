@@ -7,16 +7,13 @@ import { InstallButton } from "./InstallButton";
 import { SignOutButton } from "./SignOutButton";
 import { StoreStatus } from "./StoreStatus";
 import { useStore } from "./StoreProvider";
-
-const NAV_INACTIVE = "#C9CFC4";
+import { CalderoIcon, Mosaico } from "./ui";
 
 const NAV = [
   {
     href: "/",
     label: "Resumen",
-    icon: (
-      <path d="M3 10L10 3l7 7M5 9v8h10V9" />
-    ),
+    icon: <path d="M3 10L10 3l7 7M5 9v8h10V9" />,
   },
   {
     href: "/recetas",
@@ -28,22 +25,18 @@ const NAV = [
   {
     href: "/inventario",
     label: "Inventario",
-    icon: (
-      <path d="M3 6.5l7-3.5 7 3.5-7 3.5-7-3.5zm0 0v7l7 3.5 7-3.5v-7M10 10v7" />
-    ),
+    icon: <path d="M3 6.5l7-3.5 7 3.5-7 3.5-7-3.5zm0 0v7l7 3.5 7-3.5v-7M10 10v7" />,
   },
   {
     href: "/facturas",
     label: "Facturas",
-    icon: (
-      <path d="M5 3h10v14l-2-1-2 1-2-1-2 1-2-1V3zM7.3 7h5.4M7.3 10h5.4M7.3 13h3.4" />
-    ),
+    icon: <path d="M5 3h10v14l-2-1-2 1-2-1-2 1-2-1V3zM7.3 7h5.4M7.3 10h5.4M7.3 13h3.4" />,
   },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const { origen } = useStore();
+  const { origen, config } = useStore();
 
   return (
     <div
@@ -59,50 +52,61 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     >
       <aside className="app-sidebar" style={{ background: colors.sidebarBg }}>
         <div
-          className="app-sidebar-blob"
+          className="app-sidebar-pattern"
           style={{
             position: "absolute",
-            top: -60,
-            right: -60,
-            width: 180,
-            height: 180,
-            borderRadius: "50%",
-            background: `radial-gradient(circle, ${colors.secondary}55, transparent 70%)`,
-            pointerEvents: "none",
+            inset: "auto 0 0 0",
+            height: 320,
+            WebkitMaskImage: "linear-gradient(to top, #000 10%, transparent)",
+            maskImage: "linear-gradient(to top, #000 10%, transparent)",
           }}
-        />
+        >
+          <Mosaico color={colors.mango} opacity={0.14} size={48} />
+        </div>
 
         <div className="app-sidebar-brand">
           <div
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 11,
-              background: colors.secondary,
+              width: 42,
+              height: 42,
+              borderRadius: 14,
+              background: colors.mango,
+              color: colors.monte,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
+              transform: "rotate(-4deg)",
             }}
           >
-            <svg
-              width="21"
-              height="21"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={colors.sidebarBg}
-              strokeWidth="1.9"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 10h16" />
-              <path d="M5.6 10l1 8.1A2 2 0 0 0 8.6 20h6.8a2 2 0 0 0 2-1.9l1-8.1" />
-              <path d="M4 10.2 2.5 8.7M20 10.2l1.5-1.5" />
-              <path d="M10.5 4.3c0 1-1 1-1 2s1 1 1 2M14 3.8c0 1-1 1-1 2s1 1 1 2" />
-            </svg>
+            <CalderoIcon size={23} strokeWidth={2} />
           </div>
-          <div style={{ fontFamily: font.family, fontSize: 19, fontWeight: 700, color: colors.sidebarText, lineHeight: 1 }}>
-            Cuadre
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontFamily: font.display,
+                fontSize: 25,
+                fontWeight: 600,
+                color: colors.sidebarText,
+                lineHeight: 1,
+                letterSpacing: -0.5,
+              }}
+            >
+              Cuadre
+            </div>
+            <div
+              className="app-sidebar-negocio"
+              style={{
+                fontSize: 11.5,
+                color: colors.sidebarMuted,
+                marginTop: 4,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {config.nombreNegocio || "Costeo de cocina"}
+            </div>
           </div>
         </div>
 
@@ -114,19 +118,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={n.href}
                 href={n.href}
                 className="app-nav-link"
+                aria-current={active ? "page" : undefined}
                 style={{
-                  fontWeight: active ? 700 : 500,
-                  color: active ? colors.sidebarBg : NAV_INACTIVE,
-                  background: active ? colors.secondary : "transparent",
+                  fontWeight: active ? 800 : 600,
+                  color: active ? colors.monte : colors.sidebarMuted,
+                  background: active ? colors.mango : "transparent",
                 }}
               >
                 <svg
-                  width="17"
-                  height="17"
+                  width="18"
+                  height="18"
                   viewBox="0 0 20 20"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="1.7"
+                  strokeWidth="1.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
@@ -140,7 +145,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="app-sidebar-footer">
           <div className="app-sidebar-status" style={{ color: colors.sidebarMuted }}>
-            {origen === "supabase" ? "Conectado a Supabase" : "Modo local · sin conexión"}
+            <span
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: origen === "supabase" ? "#7FC08F" : colors.mango,
+                flexShrink: 0,
+              }}
+            />
+            {origen === "supabase" ? "Sincronizado" : "Modo local"}
           </div>
           <InstallButton />
           <SignOutButton />
@@ -148,7 +162,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <main className="app-main">
-        <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
           <StoreStatus />
           {children}
         </div>

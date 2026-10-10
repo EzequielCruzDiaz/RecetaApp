@@ -11,8 +11,108 @@ body {
 }
 
 body {
+  background: #f4ecdf;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #f2b23e66;
+}
+
+:focus-visible {
+  outline: 2px solid #1f6e86;
+  outline-offset: 2px;
+}
+
+button:not(:disabled) {
+  transition: transform 0.12s ease, filter 0.12s ease, background-color 0.12s ease;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+button:not(:disabled):hover {
+  filter: brightness(0.96);
+}
+
+.page-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.grid-resumen {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 22px;
+}
+
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.grid-recetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.grid-recibos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.fila-inventario {
+  display: grid;
+  grid-template-columns: 44px minmax(140px, 1.4fr) minmax(160px, 1.3fr) 90px 104px 30px;
+  align-items: center;
+  gap: 18px;
+}
+
+.fila-inventario .col-minimo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.recibo {
+  --zz: 16px;
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / var(--zz) 51% repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--zz) / 2 + 1px) no-repeat;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / var(--zz) 51% repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--zz) / 2 + 1px) no-repeat;
+}
+
+.lider {
+  flex: 1;
+  min-width: 16px;
+  border-bottom: 2px dotted currentColor;
+  opacity: 0.35;
+  transform: translateY(-4px);
 }
 
 a {
@@ -32,7 +132,7 @@ textarea {
 }
 
 .app-sidebar {
-  width: 236px;
+  width: 248px;
   flex-shrink: 0;
   padding: 28px 18px;
   display: flex;
@@ -47,8 +147,8 @@ textarea {
 .app-sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 8px 26px;
+  gap: 12px;
+  padding: 4px 8px 30px;
   position: relative;
 }
 
@@ -56,15 +156,16 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
 }
 
 .app-nav-link {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
-  border-radius: 10px;
-  font-size: 14px;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 14.5px;
   text-decoration: none;
 }
 
@@ -77,15 +178,19 @@ textarea {
 }
 
 .app-sidebar-status {
-  font-size: 11px;
-  padding: 0 8px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 10px 6px;
 }
 
 .app-sidebar-action {
   width: 100%;
   font-size: 13px;
-  padding: 9px 12px;
-  border-radius: 9px;
+  padding: 10px 12px;
+  border-radius: 999px;
   cursor: pointer;
   font-family: inherit;
 }
@@ -93,7 +198,31 @@ textarea {
 .app-main {
   flex: 1;
   min-width: 0;
-  padding: 36px 44px 60px;
+  padding: 44px 48px 72px;
+}
+
+@media (max-width: 1100px) {
+  .grid-resumen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .grid-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fila-inventario {
+    grid-template-columns: 44px minmax(0, 1fr) auto 30px;
+    row-gap: 12px;
+  }
+
+  .fila-inventario .col-medidor {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+
+  .fila-inventario .col-minimo {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
@@ -113,8 +242,38 @@ textarea {
     z-index: 30;
   }
 
-  .app-sidebar-blob {
+  .app-sidebar-pattern,
+  .app-sidebar-negocio {
     display: none;
+  }
+
+  .page-title {
+    margin-bottom: 22px;
+  }
+
+  .page-title h1 {
+    font-size: 30px !important;
+  }
+
+  .grid-stats {
+    gap: 10px;
+  }
+
+  .stat-valor {
+    font-size: 23px !important;
+  }
+
+  .fila-inventario {
+    gap: 12px;
+  }
+
+  .fila-inventario .col-medidor {
+    grid-column: 1 / -1;
+  }
+
+  .grid-recibos,
+  .grid-recetas {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .app-sidebar-brand {
@@ -158,9 +317,10 @@ textarea {
 
   .app-nav-link {
     flex-direction: column;
-    gap: 2px;
-    padding: 6px 10px;
+    gap: 3px;
+    padding: 7px 12px;
     font-size: 10.5px;
+    border-radius: 12px;
   }
 
   .app-nav-link svg {

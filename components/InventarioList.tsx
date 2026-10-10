@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import type { InventoryIngredient, UnitCategory } from "@/lib/types";
-import { colors, font, numeric, radius } from "@/lib/tokens";
-import { Badge, Money, NumberInput, formatMoney } from "./ui";
+import { colors, font, numeric, radius, shadow } from "@/lib/tokens";
+import { Badge, Chip, NumberInput, StockMeter, formatMoney } from "./ui";
 
 interface InventarioListProps {
   inventario: InventoryIngredient[];
@@ -16,119 +17,207 @@ const CATEGORIA_ICON: Record<UnitCategory, React.ReactNode> = {
   pieza: <path d="M3 6.5l7-3.5 7 3.5-7 3.5-7-3.5zm0 0v7l7 3.5 7-3.5v-7" />,
 };
 
+const CATEGORIA_TINTE: Record<UnitCategory, string> = {
+  peso: "#8A6A3A",
+  volumen: colors.caribe,
+  pieza: colors.positive,
+};
+
+const FILTROS: { id: "todos" | "bajo" | UnitCategory; label: string }[] = [
+  { id: "todos", label: "Todos" },
+  { id: "bajo", label: "Stock bajo" },
+  { id: "peso", label: "Peso" },
+  { id: "volumen", label: "Volumen" },
+  { id: "pieza", label: "Pieza" },
+];
+
 const miniInput: React.CSSProperties = {
-  width: 60,
-  fontSize: 15,
-  fontWeight: 700,
-  padding: "2px 4px",
-  border: "none",
-  borderBottom: `1.5px solid ${colors.border}`,
-  background: "transparent",
+  width: 64,
+  fontSize: 16,
+  fontWeight: 800,
+  padding: "3px 6px",
+  border: `1px solid ${colors.border}`,
+  borderRadius: 8,
+  background: colors.surfaceAlt,
   color: colors.text,
   fontFamily: "inherit",
   textAlign: "right",
   ...numeric,
 };
 
-export function InventarioList({ inventario, onUpdate, onRemove }: InventarioListProps) {
+const etiqueta: React.CSSProperties = {
+  fontSize: 10.5,
+  fontWeight: 800,
+  letterSpacing: 0.8,
+  textTransform: "uppercase",
+  color: colors.textFaint,
+};
+
+function Resumen({ label, children, alert }: { label: string; children: React.ReactNode; alert?: boolean }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {inventario.map((ing) => {
-        const bajo = ing.stock <= ing.stockMinimo;
-        const tint = bajo ? colors.accent : colors.text;
-        return (
-          <div
-            key={ing.id}
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: 16,
-              background: colors.surface,
-              border: `1px solid ${bajo ? colors.accent : colors.border}`,
-              borderRadius: radius.lg,
-              padding: "14px 16px",
-            }}
-          >
+    <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+      <span style={etiqueta}>{label}</span>
+      <span
+        style={{
+          fontFamily: font.display,
+          fontSize: 24,
+          fontWeight: 600,
+          letterSpacing: -0.4,
+          color: alert ? colors.accent : colors.text,
+          ...numeric,
+        }}
+      >
+        {children}
+      </span>
+    </div>
+  );
+}
+
+export function InventarioList({ inventario, onUpdate, onRemove }: InventarioListProps) {
+  const [filtro, setFiltro] = useState<(typeof FILTROS)[number]["id"]>("todos");
+
+  const esBajo = (i: InventoryIngredient) => i.stock <= i.stockMinimo;
+  const bajos = inventario.filter(esBajo).length;
+  const valor = inventario.reduce((acc, i) => acc + i.stock * i.precioCompra, 0);
+
+  const contar = (id: (typeof FILTROS)[number]["id"]) =>
+    id === "todos" ? inventario.length : id === "bajo" ? bajos : inventario.filter((i) => i.categoria === id).length;
+
+  const visibles = inventario.filter((i) =>
+    filtro === "todos" ? true : filtro === "bajo" ? esBajo(i) : i.categoria === filtro,
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gap: 16,
+          background: colors.surface,
+          border: `1px solid ${colors.border}`,
+          borderRadius: radius.lg,
+          boxShadow: shadow.card,
+          padding: "16px 20px",
+        }}
+      >
+        <Resumen label="Ingredientes">{inventario.length}</Resumen>
+        <Resumen label="Valor en almacén">{formatMoney(valor)}</Resumen>
+        <Resumen label="Por reponer" alert={bajos > 0}>
+          {bajos}
+        </Resumen>
+      </div>
+
+      <div className="chips">
+        {FILTROS.map((f) => {
+          const n = contar(f.id);
+          if (n === 0 && f.id !== "todos" && f.id !== "bajo") return null;
+          return <Chip key={f.id} label={f.label} count={n} active={filtro === f.id} onClick={() => setFiltro(f.id)} />;
+        })}
+      </div>
+
+      {visibles.length === 0 && (
+        <p style={{ fontSize: 14, color: colors.positive, fontWeight: 700, margin: 0 }}>
+          {filtro === "bajo" ? "Nada por reponer. Todo está sobre el mínimo." : "No hay ingredientes en este filtro."}
+        </p>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {visibles.map((ing) => {
+          const bajo = esBajo(ing);
+          const tinte = CATEGORIA_TINTE[ing.categoria];
+          return (
             <div
+              key={ing.id}
+              className="fila-inventario"
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: bajo ? `${colors.accent}22` : `${colors.text}14`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: tint,
-                flexShrink: 0,
+                background: colors.surface,
+                border: `1px solid ${bajo ? `${colors.accent}66` : colors.border}`,
+                borderLeft: `4px solid ${bajo ? colors.accent : colors.border}`,
+                borderRadius: radius.lg,
+                boxShadow: shadow.card,
+                padding: "14px 16px",
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                {CATEGORIA_ICON[ing.categoria]}
-              </svg>
-            </div>
-
-            <div style={{ flex: 1, minWidth: 140 }}>
-              <div style={{ fontFamily: font.family, fontSize: 14.5, fontWeight: 600, color: colors.text }}>
-                {ing.nombre}
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 14,
+                  background: `${tinte}1A`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: tinte,
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  {CATEGORIA_ICON[ing.categoria]}
+                </svg>
               </div>
-              <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
-                {formatMoney(ing.precioCompra)} / {ing.unidadCompra}
-              </div>
-            </div>
 
-            <label style={{ textAlign: "right", flexShrink: 0 }}>
-              <div style={{ fontSize: 11, color: colors.textFaint }}>Stock actual</div>
-              <div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 15.5, fontWeight: 800, color: colors.text }}>{ing.nombre}</div>
+                <div style={{ fontSize: 12.5, color: colors.textMuted, marginTop: 2, fontWeight: 600, ...numeric }}>
+                  {formatMoney(ing.precioCompra)} / {ing.unidadCompra}
+                </div>
+              </div>
+
+              <div className="col-medidor" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <span style={etiqueta}>Hay</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <NumberInput
+                      value={ing.stock}
+                      onChange={(stock) => onUpdate(ing.id, { stock })}
+                      aria-label={`Stock actual de ${ing.nombre}`}
+                      style={{ ...miniInput, color: bajo ? colors.accent : colors.text }}
+                    />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted }}>{ing.unidadCompra}</span>
+                  </span>
+                </label>
+                <StockMeter stock={ing.stock} minimo={ing.stockMinimo} />
+              </div>
+
+              <label className="col-minimo">
+                <span style={etiqueta}>Mínimo</span>
                 <NumberInput
-                  value={ing.stock}
-                  onChange={(stock) => onUpdate(ing.id, { stock })}
-                  style={{ ...miniInput, color: tint }}
-                />{" "}
-                <span style={{ fontSize: 11, fontWeight: 500, color: colors.textMuted }}>{ing.unidadCompra}</span>
-              </div>
-            </label>
+                  value={ing.stockMinimo}
+                  onChange={(stockMinimo) => onUpdate(ing.id, { stockMinimo })}
+                  aria-label={`Stock mínimo de ${ing.nombre}`}
+                  style={{ ...miniInput, fontSize: 14, fontWeight: 700, color: colors.textMuted, width: 56 }}
+                />
+              </label>
 
-            <label
-              style={{
-                textAlign: "right",
-                flexShrink: 0,
-                paddingLeft: 16,
-                borderLeft: `1px solid ${colors.border}`,
-              }}
-            >
-              <div style={{ fontSize: 11, color: colors.textFaint }}>Mínimo requerido</div>
-              <NumberInput
-                value={ing.stockMinimo}
-                onChange={(stockMinimo) => onUpdate(ing.id, { stockMinimo })}
-                style={{ ...miniInput, fontSize: 14, fontWeight: 600, color: colors.textMuted, width: 50 }}
-              />
-            </label>
-
-            <div style={{ width: 92, textAlign: "right", flexShrink: 0 }}>
-              <Badge label={bajo ? "Stock bajo" : "OK"} color={bajo ? colors.accent : colors.positive} />
-              <div style={{ fontSize: 11.5, color: colors.textMuted, marginTop: 4, ...numeric }}>
-                <Money value={ing.stock * ing.precioCompra} />
+              <div style={{ textAlign: "right" }}>
+                <Badge label={bajo ? "Reponer" : "OK"} color={bajo ? colors.accent : colors.positive} />
+                <div style={{ fontSize: 12.5, color: colors.textMuted, marginTop: 6, fontWeight: 700, ...numeric }}>
+                  {formatMoney(ing.stock * ing.precioCompra)}
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => onRemove(ing.id)}
+                aria-label={`Quitar ${ing.nombre}`}
+                title="Quitar del inventario"
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 999,
+                  border: `1px solid ${colors.border}`,
+                  background: "transparent",
+                  color: colors.textFaint,
+                  cursor: "pointer",
+                  fontSize: 12,
+                }}
+              >
+                ✕
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => onRemove(ing.id)}
-              aria-label={`Quitar ${ing.nombre}`}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: colors.textFaint,
-                cursor: "pointer",
-                fontSize: 12,
-              }}
-            >
-              Quitar
-            </button>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

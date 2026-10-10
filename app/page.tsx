@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { Dashboard } from "@/components/Dashboard";
 import { ResumenHeader } from "@/components/ResumenHeader";
-import { EmptyState } from "@/components/ui";
+import { EmptyState, buttonStyle } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
 
 export default function ResumenPage() {
-  const { recetas, inventario, config, updateNombreNegocio } = useStore();
+  const { recetas, inventario, facturas, config, updateNombreNegocio } = useStore();
   const sinDatos = recetas.length === 0 && inventario.length === 0;
 
   return (
@@ -19,14 +19,14 @@ export default function ResumenPage() {
       {sinDatos ? (
         <EmptyState
           title="Bienvenido a Cuadre"
-          hint="Empezá cargando tu inventario de ingredientes. Con eso vas a poder costear recetas, escalar producción y registrar facturas."
+          hint="Empieza cargando tu inventario de ingredientes. Con eso vas a poder costear recetas, escalar la producción y registrar facturas."
         >
-          <Link href="/inventario" style={{ fontSize: 13, color: "inherit" }}>
-            Ir a Inventario →
+          <Link href="/inventario" style={{ ...buttonStyle, display: "inline-block", textDecoration: "none", marginTop: 8 }}>
+            Cargar inventario
           </Link>
         </EmptyState>
       ) : (
-        <Dashboard recetas={recetas} inventario={inventario} />
+        <Dashboard recetas={recetas} inventario={inventario} facturas={facturas} />
       )}
     </>
   );
